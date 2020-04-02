@@ -1,0 +1,10 @@
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\bin\Debug\Dolphin TAStudio.exe.config
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\bin\Debug\Dolphin TAStudio.exe
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\bin\Debug\Dolphin TAStudio.pdb
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\obj\Debug\Dolphin TAStudio.csprojAssemblyReference.cache
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\obj\Debug\Dolphin_TAStudio.Form1.resources
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\obj\Debug\Dolphin_TAStudio.Properties.Resources.resources
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\obj\Debug\Dolphin TAStudio.csproj.GenerateResource.cache
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\obj\Debug\Dolphin TAStudio.csproj.CoreCompileInputs.cache
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\obj\Debug\Dolphin TAStudio.exe
+C:\Users\Sean\Documents\GitHub\Dolphin-TAStudio\Dolphin TAStudio\obj\Debug\Dolphin TAStudio.pdb
