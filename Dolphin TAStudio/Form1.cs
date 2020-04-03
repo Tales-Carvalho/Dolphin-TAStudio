@@ -179,7 +179,6 @@ namespace Dolphin_TAStudio
 
                 // If the user right clicks while a row(s) is/are selected, copy the row(s)
                 DataGridViewSelectedRowCollection selectedRows = inputView.SelectedRows;
-                if (selectedRows.Count == 0) return;
 
                 inputView.ClearSelection();
                 try
@@ -293,6 +292,12 @@ namespace Dolphin_TAStudio
                     inputView.Rows[inputView.Rows.Count - 1].Cells[i].Value = 128;
                 }
             }
+        }
+
+        private void inputView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            // Handle the case where checkbox cell value changes are not instantly reflected
+            if (inputView.IsCurrentCellDirty) inputView.CommitEdit(DataGridViewDataErrorContexts.Commit);
         }
     }
 }
