@@ -1,3 +1,0 @@
-Dolphin TAStudio/bin/
-Dolphin TAStudio/obj/
-.vs/
