@@ -142,12 +142,10 @@
             // 
             this.inputView.AllowUserToResizeColumns = false;
             this.inputView.AllowUserToResizeRows = false;
-            this.inputView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.inputView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.inputView.Location = new System.Drawing.Point(12, 27);
             this.inputView.Name = "inputView";
-            this.inputView.Size = new System.Drawing.Size(631, 563);
+            this.inputView.Size = new System.Drawing.Size(633, 563);
             this.inputView.TabIndex = 1;
             this.inputView.VirtualMode = true;
             this.inputView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
@@ -156,10 +154,11 @@
             // 
             // playbackBox
             // 
-            this.playbackBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.playbackBox.Location = new System.Drawing.Point(657, 27);
+            this.playbackBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.playbackBox.Location = new System.Drawing.Point(651, 27);
             this.playbackBox.Name = "playbackBox";
-            this.playbackBox.Size = new System.Drawing.Size(200, 100);
+            this.playbackBox.Size = new System.Drawing.Size(206, 100);
             this.playbackBox.TabIndex = 2;
             this.playbackBox.TabStop = false;
             this.playbackBox.Text = "Playback";

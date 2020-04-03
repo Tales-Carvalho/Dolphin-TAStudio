@@ -1,5 +1,7 @@
 ﻿/* TODO: 
 - If you click and drag between the last row and the new row, Frame will increment and break
+- inputView_MouseClick: Implement the user right clicking and selecting multiple rows
+- copy_Data: If you right click immediately after marking a CheckBoxCell, it is not correctly interpreted
 */
 
 using System;
@@ -20,7 +22,6 @@ namespace Dolphin_TAStudio
         private DataTable table = new DataTable();
         private string fileName;
         private bool changed = false;
-        private int frameCount = 1;
 
         // Represent columns in a list of tuples, to allow for easy modification should these column names change
         private List<(string, string)> columnNames = new List<(string, string)>()
@@ -69,7 +70,6 @@ namespace Dolphin_TAStudio
             using (StreamReader reader = new StreamReader(fileLocation))
             {
                 string data = reader.ReadLine();
-                frameCount = 0;
 
                 while (!reader.EndOfStream)
                 {
@@ -125,7 +125,7 @@ namespace Dolphin_TAStudio
             foreach ((string, string) column in columnNames)
             {
                 if (column.Item2 == "Int") table.Columns.Add(column.Item1, typeof(Int16));
-                else if (column.Item2 == "Bool") table.Columns.Add(column.Item1, typeof(Boolean));
+                else if (column.Item2 == "Bool") table.Columns.Add(column.Item1, typeof(bool));
             }
         }
 
@@ -136,8 +136,7 @@ namespace Dolphin_TAStudio
             {
                 if (table.Columns[i].ColumnName == "Frame")
                 {
-                    newRow[i] = frameCount;
-                    frameCount++;
+                    newRow[i] = table.Rows.Count + 1;
                 }
                 else if (table.Columns[i].DataType == System.Type.GetType("System.Int16")) newRow[i] = 128;
             }
@@ -176,38 +175,84 @@ namespace Dolphin_TAStudio
         {
             if (e.Button == MouseButtons.Right)
             {
-                // If the user right clicks on a row, select that row
+                // TODO: Implement the user right clicking and selecting multiple rows
+
+                // If the user right clicks while a row(s) is/are selected, copy the row(s)
+                DataGridViewSelectedRowCollection selectedRows = inputView.SelectedRows;
+                if (selectedRows.Count == 0) return;
+
                 inputView.ClearSelection();
-                inputView.Rows[inputView.HitTest(e.X, e.Y).RowIndex].Selected = true;
+                try
+                {
+                    inputView.Rows[inputView.HitTest(e.X, e.Y).RowIndex].Selected = true;
+                }
+                catch (ArgumentOutOfRangeException f)
+                {
+                    return;
+                }
                 
                 // Open right-click table context menu
                 ContextMenu menu = new ContextMenu();
-                MenuItem cut = new MenuItem("Cut Frame");
-                MenuItem copy = new MenuItem("Copy Frame");
-                MenuItem paste = new MenuItem("Paste Frame");
-                cut.Click += cut_Row;
-                copy.Click += copy_Row;
-                paste.Click += paste_Row;
-
-                int currentMouseOverRow = inputView.HitTest(e.X, e.Y).RowIndex;
+                MenuItem cut = new MenuItem("Cut");
+                MenuItem copy = new MenuItem("Copy");
+                MenuItem paste = new MenuItem("Paste");
+                cut.Click += cut_Data;
+                copy.Click += copy_Data;
+                paste.Click += paste_Data;
+                menu.MenuItems.Add(cut);
+                menu.MenuItems.Add(copy);
+                menu.MenuItems.Add(paste);
 
                 menu.Show(inputView, new Point(e.X, e.Y));
             }
         }
 
-        private void cut_Row(object sender, EventArgs e)
+        private void cut_Data(object sender, EventArgs e)
         {
 
         }
 
-        private void copy_Row(object sender, EventArgs e)
+        private void copy_Data(object sender, EventArgs e)
         {
+            // Parse rows into a comma, separated string
+            string data = "";
+            DataGridViewSelectedRowCollection selectedRows = inputView.SelectedRows;
+            MessageBox.Show("Selected row " + selectedRows[0].Index.ToString());
+            foreach (DataGridViewRow row in selectedRows)
+            {
+                foreach (DataGridViewCell cell in row.Cells)
+                {
+                    if (cell.GetType() == typeof(DataGridViewCheckBoxCell))
+                    {
+                        if (cell.Value != DBNull.Value)
+                        {
+                         data = data + "true, ";
+                         var colIndex = cell.ColumnIndex;
+                         string colName = inputView.Columns[colIndex].Name;
+                        }
+                        else data = data + "false, ";
+                    }
+                    else data = data + cell.Value.ToString() + ", ";
+                }
 
+                data = data.Substring(0, data.Length - 2) + "; ";
+            }
+            data = data.Substring(0, data.Length - 2);
+
+            Clipboard.SetText(data);
         }
 
-        private void paste_Row(object sender, EventArgs e)
+        private void paste_Data(object sender, EventArgs e)
         {
+            // FOR NOW: Test pasting 1 row
+            string data = Clipboard.GetText();
+            MessageBox.Show(data);
 
+
+            // Determine where to paste this row
+            int rowIndex = inputView.SelectedRows[0].Index;
+
+            //inputView.Rows.Insert(rowIndex, row);
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -218,7 +263,7 @@ namespace Dolphin_TAStudio
 
                 // In case multiple rows are selected, just focus on last frame
                 int lastIndex = inputView.SelectedRows[inputView.SelectedRows.Count - 1].Index;
-
+                
                 DataRow newRow;
                 newRow = table.NewRow();
                 newRow[0] = lastIndex + 2;
@@ -232,10 +277,14 @@ namespace Dolphin_TAStudio
             }
         }
 
+        private void Form1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+        }
+
         private void inputView_NewRowNeeded(object sender, DataGridViewRowEventArgs e)
         {
-            inputView.Rows[inputView.Rows.Count - 1].Cells["Frame"].Value = frameCount;
-            frameCount++;
+            inputView.Rows[inputView.Rows.Count - 1].Cells["Frame"].Value = table.Rows.Count + 1;
             for (int i = 0; i < inputView.Columns.Count; i++)
             {
                 // If the cell is an analog field and it was not modified, set it to default 128
