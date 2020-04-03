@@ -53,7 +53,7 @@
             this.editToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(851, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(869, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -147,16 +147,17 @@
             this.inputView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.inputView.Location = new System.Drawing.Point(12, 27);
             this.inputView.Name = "inputView";
-            this.inputView.Size = new System.Drawing.Size(613, 563);
+            this.inputView.Size = new System.Drawing.Size(631, 563);
             this.inputView.TabIndex = 1;
             this.inputView.VirtualMode = true;
             this.inputView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+            this.inputView.NewRowNeeded += new System.Windows.Forms.DataGridViewRowEventHandler(this.inputView_NewRowNeeded);
             this.inputView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.inputView_MouseClick);
             // 
             // playbackBox
             // 
             this.playbackBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.playbackBox.Location = new System.Drawing.Point(639, 27);
+            this.playbackBox.Location = new System.Drawing.Point(657, 27);
             this.playbackBox.Name = "playbackBox";
             this.playbackBox.Size = new System.Drawing.Size(200, 100);
             this.playbackBox.TabIndex = 2;
@@ -168,11 +169,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(851, 602);
+            this.ClientSize = new System.Drawing.Size(869, 602);
             this.Controls.Add(this.playbackBox);
             this.Controls.Add(this.inputView);
             this.Controls.Add(this.menuStrip1);
-            this.MinimumSize = new System.Drawing.Size(867, 39);
+            this.MinimumSize = new System.Drawing.Size(885, 39);
             this.Name = "Form1";
             this.Text = "Form1";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);

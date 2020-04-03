@@ -1,4 +1,8 @@
-﻿using System;
+﻿/* TODO: 
+- If you click and drag between the last row and the new row, Frame will increment and break
+*/
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,29 +20,31 @@ namespace Dolphin_TAStudio
         private DataTable table = new DataTable();
         private string fileName;
         private bool changed = false;
-        private int frameCount;
+        private int frameCount = 1;
 
         // Represent columns in a list of tuples, to allow for easy modification should these column names change
         private List<(string, string)> columnNames = new List<(string, string)>()
         {
-            ("Frame", "Integer"),
-            ("aX", "Integer"),
-            ("aY", "Intger"),
+            ("Save?", "Bool"),
+            ("Frame", "Int"),
+            ("aX", "Int"),
+            ("aY", "Int"),
             ("A", "Bool"),
             ("B", "Bool"),
             ("X", "Bool"),
             ("Y", "Bool"),
+            ("S", "Bool"),
             ("Z", "Bool"),
             ("L", "Bool"),
             ("R", "Bool"),
-            ("La", "Integer"),
-            ("Ra", "Integer"),
+            ("La", "Int"),
+            ("Ra", "Int"),
             ("dU", "Bool"),
             ("dD", "Bool"),
             ("dL", "Bool"),
             ("dR", "Bool"),
-            ("cX", "Integer"),
-            ("cY", "Integer")
+            ("cX", "Int"),
+            ("cY", "Int")
         };
 
         public Form1()
@@ -116,69 +122,92 @@ namespace Dolphin_TAStudio
 
         private void tableGenerateColumns()
         {
+            foreach ((string, string) column in columnNames)
+            {
+                if (column.Item2 == "Int") table.Columns.Add(column.Item1, typeof(Int16));
+                else if (column.Item2 == "Bool") table.Columns.Add(column.Item1, typeof(Boolean));
+            }
+        }
 
+        private void tableGenerateDefaultRow()
+        {
+            DataRow newRow = table.NewRow();
+            for (int i = 1; i < table.Columns.Count; i++)
+            {
+                if (table.Columns[i].ColumnName == "Frame")
+                {
+                    newRow[i] = frameCount;
+                    frameCount++;
+                }
+                else if (table.Columns[i].DataType == System.Type.GetType("System.Int16")) newRow[i] = 128;
+            }
+
+            table.Rows.Add(newRow);
+        }
+
+        private void resizeInputViewColumns()
+        {
+            for (int i = 0; i < table.Columns.Count; i++)
+            {
+                int columnNameLength = table.Columns[i].ColumnName.Length;
+                // Scale column width based on the length of the column name
+                inputView.Columns[i].Width = (5 * columnNameLength) + 20;
+
+
+                if (table.Columns[i].ColumnName == "Frame")
+                {
+                    inputView.Columns[i].ReadOnly = true;
+                }
+            }
         }
 
         private void newCtrlNToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // TODO: Save before quitting an open table
 
-            // Generate a blank table for a new recording file
-            table.Columns.Add("Frame", typeof(int));
-            table.Columns[0].ReadOnly = true;
-            table.Columns.Add("aX", typeof(int));
-            table.Columns.Add("aY", typeof(int));
-            table.Columns.Add("A", typeof(bool));
-            table.Columns.Add("B", typeof(bool));
-            table.Columns.Add("X", typeof(bool));
-            table.Columns.Add("Y", typeof(bool));
-            table.Columns.Add("Z", typeof(bool));
-            table.Columns.Add("L", typeof(bool));
-            table.Columns.Add("R", typeof(bool));
-            table.Columns.Add("La", typeof(bool));
-            table.Columns.Add("Ra", typeof(bool));
-            table.Columns.Add("u", typeof(bool));
-            table.Columns.Add("d", typeof(bool));
-            table.Columns.Add("l", typeof(bool));
-            table.Columns.Add("r", typeof(bool));
-            table.Columns.Add("cX", typeof(int));
-            table.Columns.Add("cY", typeof(int));
-            table.Rows.Add(1, 128, 128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 128, 128);
-
+            // Generate a blank table with one default row
+            tableGenerateColumns();
+            tableGenerateDefaultRow();
             inputView.DataSource = table;
-            inputView.Columns[0].Width = 60;
-            inputView.Columns[1].Width = 30;
-            inputView.Columns[2].Width = 30;
-            inputView.Columns[3].Width = 30;
-            inputView.Columns[4].Width = 30;
-            inputView.Columns[5].Width = 30;
-            inputView.Columns[6].Width = 30;
-            inputView.Columns[7].Width = 30;
-            inputView.Columns[8].Width = 30;
-            inputView.Columns[9].Width = 30;
-            inputView.Columns[10].Width = 30;
-            inputView.Columns[11].Width = 30;
-            inputView.Columns[12].Width = 30;
-            inputView.Columns[13].Width = 30;
-            inputView.Columns[14].Width = 30;
-            inputView.Columns[15].Width = 30;
-            inputView.Columns[16].Width = 30;
-            inputView.Columns[17].Width = 30;
+            resizeInputViewColumns();
         }
 
         private void inputView_MouseClick(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
+                // If the user right clicks on a row, select that row
+                inputView.ClearSelection();
+                inputView.Rows[inputView.HitTest(e.X, e.Y).RowIndex].Selected = true;
+                
+                // Open right-click table context menu
                 ContextMenu menu = new ContextMenu();
-                menu.MenuItems.Add(new MenuItem("Cut Frame"));
-                menu.MenuItems.Add(new MenuItem("Copy Frame"));
-                menu.MenuItems.Add(new MenuItem("Paste Frame"));
+                MenuItem cut = new MenuItem("Cut Frame");
+                MenuItem copy = new MenuItem("Copy Frame");
+                MenuItem paste = new MenuItem("Paste Frame");
+                cut.Click += cut_Row;
+                copy.Click += copy_Row;
+                paste.Click += paste_Row;
 
                 int currentMouseOverRow = inputView.HitTest(e.X, e.Y).RowIndex;
 
                 menu.Show(inputView, new Point(e.X, e.Y));
             }
+        }
+
+        private void cut_Row(object sender, EventArgs e)
+        {
+
+        }
+
+        private void copy_Row(object sender, EventArgs e)
+        {
+
+        }
+
+        private void paste_Row(object sender, EventArgs e)
+        {
+
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -200,6 +229,20 @@ namespace Dolphin_TAStudio
                 }
                 //newRow.ItemArray = [lastIndex + 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
                 //table.Rows.InsertAt(, lastIndex + 1);
+            }
+        }
+
+        private void inputView_NewRowNeeded(object sender, DataGridViewRowEventArgs e)
+        {
+            inputView.Rows[inputView.Rows.Count - 1].Cells["Frame"].Value = frameCount;
+            frameCount++;
+            for (int i = 0; i < inputView.Columns.Count; i++)
+            {
+                // If the cell is an analog field and it was not modified, set it to default 128
+                if (table.Columns[i].DataType == System.Type.GetType("System.Int16") && inputView.Rows[inputView.Rows.Count - 1].Cells[i].Value == null && table.Columns[i].ColumnName != "Frame")
+                {
+                    inputView.Rows[inputView.Rows.Count - 1].Cells[i].Value = 128;
+                }
             }
         }
     }
