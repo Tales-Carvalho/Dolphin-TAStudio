@@ -1,5 +1,7 @@
 ﻿/* TODO: 
-- inputView_MouseClick: Implement the user right clicking and selecting multiple rows
+- inputView_MouseClick: Disable paste if no data is copied
+-                       Disable paste after cut data is pasted
+-                       paste_Data does not correctly overwrite
 */
 
 using System;
@@ -201,14 +203,17 @@ namespace Dolphin_TAStudio
                 MenuItem copy = new MenuItem("Copy");
                 MenuItem paste = new MenuItem("Paste");
                 MenuItem insert = new MenuItem("Insert Frame");
+                MenuItem pasteInsert = new MenuItem("Paste Insert");
                 cut.Click += cut_Data;
                 copy.Click += copy_Data;
                 paste.Click += paste_Data;
                 insert.Click += insert_BlankFrame;
+                pasteInsert.Click += pasteInsert_Data;
                 menu.MenuItems.Add(cut);
                 menu.MenuItems.Add(copy);
                 menu.MenuItems.Add(paste);
                 menu.MenuItems.Add(insert);
+                menu.MenuItems.Add(pasteInsert);
 
                 menu.Show(inputView, new Point(e.X, e.Y));
             }
@@ -265,9 +270,42 @@ namespace Dolphin_TAStudio
         {
             string data = Clipboard.GetText();
             string[] dataRows = data.Split(';');
-            
+
             // Functionality right now: Will overwrite the table at the selected index, adding new rows if it exceeds the length of the table
             // We may want to change this to insert in the table at a later time
+
+            // Determine where to paste this row
+            int rowIndex = inputView.SelectedRows[0].Index;
+
+            // To overwrite rows, delete rows first
+            for (int i = 0; i < inputView.SelectedRows.Count; i++)
+            {
+                table.Rows.RemoveAt(rowIndex);
+            }
+
+            // Iterate each frame
+            for (int i = 0; i < dataRows.Length; i++)
+            {
+                DataRow rowData = table.NewRow();
+                string[] dataCells = dataRows[i].Split(',');
+
+                // Iterate each cell
+                for (int j = 0; j < table.Columns.Count; j++)
+                {
+                    rowData[j] = dataCells[j];
+                }
+
+                table.Rows.InsertAt(rowData, rowIndex + i);
+            }
+
+            // Resynchronize frame column
+            resync_FrameCount(rowIndex);
+        }
+
+        private void pasteInsert_Data(object sender, EventArgs e)
+        {
+            string data = Clipboard.GetText();
+            string[] dataRows = data.Split(';');
 
             // Determine where to paste this row
             int rowIndex = inputView.SelectedRows[0].Index;
