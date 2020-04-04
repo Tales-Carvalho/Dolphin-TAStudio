@@ -251,10 +251,10 @@ namespace Dolphin_TAStudio
                         }
                         else data = data + "false, ";
                     }
-                    else data = data + cell.Value.ToString() + ", ";
+                    else data = data + cell.Value.ToString() + ",";
                 }
 
-                data = data.Substring(0, data.Length - 2) + "; ";
+                data = data.Substring(0, data.Length - 2) + ";";
             }
             data = data.Substring(0, data.Length - 2);
 
@@ -269,9 +269,23 @@ namespace Dolphin_TAStudio
             // Functionality right now: Will overwrite the table at the selected index, adding new rows if it exceeds the length of the table
             // We may want to change this to insert in the table at a later time
 
-
             // Determine where to paste this row
             int rowIndex = inputView.SelectedRows[0].Index;
+
+            // Iterate each frame
+            for (int i = 0; i < dataRows.Length; i++)
+            {
+                DataRow rowData = table.NewRow();
+                string[] dataCells = dataRows[i].Split(',');
+
+                // Iterate each cell
+                for (int j = 0; j < table.Columns.Count; j++)
+                {
+                    rowData[j] = dataCells[j];
+                }
+
+                table.Rows.InsertAt(rowData, rowIndex + i);
+            }
 
             // Resynchronize frame column
             resync_FrameCount(rowIndex);
@@ -280,7 +294,6 @@ namespace Dolphin_TAStudio
         private void insert_BlankFrame(object sender, EventArgs e)
         {
             table.Rows.InsertAt(tableGenerateDefaultRow(), inputView.SelectedRows[0].Index);
-            MessageBox.Show(inputView.SelectedRows.Count.ToString());
             resync_FrameCount(inputView.SelectedRows[0].Index - 1);
         }
 
