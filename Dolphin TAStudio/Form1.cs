@@ -1,7 +1,7 @@
-﻿/* TODO: 
-- inputView_MouseClick: Disable paste if no data is copied
--                       Disable paste after cut data is pasted
--                       paste_Data does not correctly overwrite
+﻿/* TODO:
+ * paste_Data - Error when pasting multiple rows
+ * copy_Data - No object reference when copying newest row
+ * paste_Data - Frame count can get out-of-order
 */
 
 using System;
@@ -22,6 +22,7 @@ namespace Dolphin_TAStudio
         private DataTable table = new DataTable();
         private string fileName;
         private bool changed = false;
+        private bool dataCopiedToClipboard = false;
 
         // Represent columns in a list of tuples, to allow for easy modification should these column names change
         private List<(string, string)> columnNames = new List<(string, string)>()
@@ -56,6 +57,7 @@ namespace Dolphin_TAStudio
 
         private void disableMenuButtons()
         {
+            cutCtrlXToolStripMenuItem.Enabled = false;
             copyToolStripMenuItem.Enabled = false;
             pasteToolStripMenuItem.Enabled = false;
             saveToolStripMenuItem.Enabled = false;
@@ -204,6 +206,13 @@ namespace Dolphin_TAStudio
                 MenuItem paste = new MenuItem("Paste");
                 MenuItem insert = new MenuItem("Insert Frame");
                 MenuItem pasteInsert = new MenuItem("Paste Insert");
+
+                // Check for data in clipboard for paste operations
+                if (!dataCopiedToClipboard)
+                {
+                    paste.Enabled = false;
+                    pasteInsert.Enabled = false;
+                }
                 cut.Click += cut_Data;
                 copy.Click += copy_Data;
                 paste.Click += paste_Data;
@@ -233,6 +242,8 @@ namespace Dolphin_TAStudio
 
             // Re-synchronize frame column
             resync_FrameCount(firstIndex);
+
+            dataCopiedToClipboard = true;
         }
 
         private void copy_Data(object sender, EventArgs e)
@@ -264,6 +275,8 @@ namespace Dolphin_TAStudio
             data = data.Substring(0, data.Length - 2);
 
             Clipboard.SetText(data);
+
+            dataCopiedToClipboard = true;
         }
 
         private void paste_Data(object sender, EventArgs e)
@@ -280,7 +293,15 @@ namespace Dolphin_TAStudio
             // To overwrite rows, delete rows first
             for (int i = 0; i < inputView.SelectedRows.Count; i++)
             {
-                table.Rows.RemoveAt(rowIndex);
+                // If the user pastes on the newest row, an IndexOutOfRange exception will occur
+                try
+                {
+                    table.Rows.RemoveAt(rowIndex);
+                }
+                catch(IndexOutOfRangeException)
+                {
+                    continue;
+                }
             }
 
             // Iterate each frame
@@ -395,6 +416,20 @@ namespace Dolphin_TAStudio
         private void inputView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             inputView.Rows[e.RowIndex].Selected = true;
+            cutCtrlXToolStripMenuItem.Enabled = true;
+            copyToolStripMenuItem.Enabled = true;
+        }
+
+        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            copy_Data(sender, e);
+            pasteToolStripMenuItem.Enabled = true;
+        }
+
+        private void cutCtrlXToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            cut_Data(sender, e);
+            pasteToolStripMenuItem.Enabled = true;
         }
     }
 }

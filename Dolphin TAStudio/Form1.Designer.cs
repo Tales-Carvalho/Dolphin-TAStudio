@@ -42,6 +42,7 @@
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inputView = new System.Windows.Forms.DataGridView();
             this.playbackBox = new System.Windows.Forms.GroupBox();
+            this.cutCtrlXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputView)).BeginInit();
             this.SuspendLayout();
@@ -104,6 +105,7 @@
             // editToolStripMenuItem
             // 
             this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.cutCtrlXToolStripMenuItem,
             this.copyToolStripMenuItem,
             this.pasteToolStripMenuItem,
             this.undoToolStripMenuItem,
@@ -116,26 +118,27 @@
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.copyToolStripMenuItem.Text = "Copy (Ctrl + C)";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // pasteToolStripMenuItem
             // 
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.pasteToolStripMenuItem.Text = "Paste (Ctrl + V)";
             this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteCtrlVToolStripMenuItem_Click);
             // 
             // undoToolStripMenuItem
             // 
             this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
-            this.undoToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.undoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.undoToolStripMenuItem.Text = "Undo (Ctrl + Z)";
             // 
             // redoToolStripMenuItem
             // 
             this.redoToolStripMenuItem.Name = "redoToolStripMenuItem";
-            this.redoToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.redoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.redoToolStripMenuItem.Text = "Redo (Ctrl + Y)";
             // 
             // inputView
@@ -165,6 +168,13 @@
             this.playbackBox.TabStop = false;
             this.playbackBox.Text = "Playback";
             this.playbackBox.Enter += new System.EventHandler(this.groupBox1_Enter);
+            // 
+            // cutCtrlXToolStripMenuItem
+            // 
+            this.cutCtrlXToolStripMenuItem.Name = "cutCtrlXToolStripMenuItem";
+            this.cutCtrlXToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.cutCtrlXToolStripMenuItem.Text = "Cut (Ctrl + X)";
+            this.cutCtrlXToolStripMenuItem.Click += new System.EventHandler(this.cutCtrlXToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -202,6 +212,7 @@
         private System.Windows.Forms.ToolStripMenuItem redoToolStripMenuItem;
         private System.Windows.Forms.GroupBox playbackBox;
         private System.Windows.Forms.ToolStripMenuItem newCtrlNToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cutCtrlXToolStripMenuItem;
     }
 }
 
