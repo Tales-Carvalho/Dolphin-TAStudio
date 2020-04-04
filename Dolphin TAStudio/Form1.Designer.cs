@@ -148,6 +148,7 @@
             this.inputView.Size = new System.Drawing.Size(633, 563);
             this.inputView.TabIndex = 1;
             this.inputView.VirtualMode = true;
+            this.inputView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.inputView_CellClick);
             this.inputView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             this.inputView.CurrentCellDirtyStateChanged += new System.EventHandler(this.inputView_CurrentCellDirtyStateChanged);
             this.inputView.NewRowNeeded += new System.Windows.Forms.DataGridViewRowEventHandler(this.inputView_NewRowNeeded);

@@ -1,7 +1,5 @@
 ﻿/* TODO: 
-- If you click and drag between the last row and the new row, Frame will increment and break
 - inputView_MouseClick: Implement the user right clicking and selecting multiple rows
-- copy_Data: If you right click immediately after marking a CheckBoxCell, it is not correctly interpreted
 */
 
 using System;
@@ -129,7 +127,7 @@ namespace Dolphin_TAStudio
             }
         }
 
-        private void tableGenerateDefaultRow()
+        private DataRow tableGenerateDefaultRow()
         {
             DataRow newRow = table.NewRow();
             for (int i = 1; i < table.Columns.Count; i++)
@@ -141,7 +139,7 @@ namespace Dolphin_TAStudio
                 else if (table.Columns[i].DataType == System.Type.GetType("System.Int16")) newRow[i] = 128;
             }
 
-            table.Rows.Add(newRow);
+            return newRow;
         }
 
         private void resizeInputViewColumns()
@@ -166,7 +164,7 @@ namespace Dolphin_TAStudio
 
             // Generate a blank table with one default row
             tableGenerateColumns();
-            tableGenerateDefaultRow();
+            table.Rows.Add(tableGenerateDefaultRow());
             inputView.DataSource = table;
             resizeInputViewColumns();
         }
@@ -178,14 +176,21 @@ namespace Dolphin_TAStudio
                 // TODO: Implement the user right clicking and selecting multiple rows
 
                 // If the user right clicks while a row(s) is/are selected, copy the row(s)
+                
+                // If multiple cells are selected, then highlight the entire row of all cells
+                foreach (DataGridViewCell cell in inputView.SelectedCells)
+                {
+                    inputView.Rows[cell.RowIndex].Selected = true;
+                }
+
                 DataGridViewSelectedRowCollection selectedRows = inputView.SelectedRows;
 
-                inputView.ClearSelection();
+                //inputView.ClearSelection();
                 try
                 {
                     inputView.Rows[inputView.HitTest(e.X, e.Y).RowIndex].Selected = true;
                 }
-                catch (ArgumentOutOfRangeException f)
+                catch (ArgumentOutOfRangeException)
                 {
                     return;
                 }
@@ -195,12 +200,15 @@ namespace Dolphin_TAStudio
                 MenuItem cut = new MenuItem("Cut");
                 MenuItem copy = new MenuItem("Copy");
                 MenuItem paste = new MenuItem("Paste");
+                MenuItem insert = new MenuItem("Insert Frame");
                 cut.Click += cut_Data;
                 copy.Click += copy_Data;
                 paste.Click += paste_Data;
+                insert.Click += insert_BlankFrame;
                 menu.MenuItems.Add(cut);
                 menu.MenuItems.Add(copy);
                 menu.MenuItems.Add(paste);
+                menu.MenuItems.Add(insert);
 
                 menu.Show(inputView, new Point(e.X, e.Y));
             }
@@ -215,8 +223,9 @@ namespace Dolphin_TAStudio
         {
             // Parse rows into a comma, separated string
             string data = "";
+            
+            // Get selected rows and iterate through each cell to parse the value of cells to a string
             DataGridViewSelectedRowCollection selectedRows = inputView.SelectedRows;
-            MessageBox.Show("Selected row " + selectedRows[0].Index.ToString());
             foreach (DataGridViewRow row in selectedRows)
             {
                 foreach (DataGridViewCell cell in row.Cells)
@@ -243,15 +252,35 @@ namespace Dolphin_TAStudio
 
         private void paste_Data(object sender, EventArgs e)
         {
-            // FOR NOW: Test pasting 1 row
             string data = Clipboard.GetText();
-            MessageBox.Show(data);
+            string[] dataRows = data.Split(';');
+            
+            // Functionality right now: Will overwrite the table at the selected index, adding new rows if it exceeds the length of the table
+            // We may want to change this to insert in the table at a later time
 
 
             // Determine where to paste this row
             int rowIndex = inputView.SelectedRows[0].Index;
 
             //inputView.Rows.Insert(rowIndex, row);
+        }
+
+        private void insert_BlankFrame(object sender, EventArgs e)
+        {
+            table.Rows.InsertAt(tableGenerateDefaultRow(), inputView.SelectedRows[0].Index);
+            MessageBox.Show(inputView.SelectedRows.Count.ToString());
+            resync_FrameCount(inputView.SelectedRows[0].Index - 1);
+        }
+
+        private void resync_FrameCount(int index)
+        {
+            // In the event that a frame is inserted or deleted, we need to resynchronize the Frame column
+            // Frame is correct up until index
+            // From index onwards, set the Frame cell based on the previous row's value
+            for (int i = index; i < inputView.Rows.Count; i++)
+            {
+                inputView.Rows[i].Cells["Frame"].Value = i + 1;
+            }
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -298,6 +327,11 @@ namespace Dolphin_TAStudio
         {
             // Handle the case where checkbox cell value changes are not instantly reflected
             if (inputView.IsCurrentCellDirty) inputView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+        }
+
+        private void inputView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            inputView.Rows[e.RowIndex].Selected = true;
         }
     }
 }
