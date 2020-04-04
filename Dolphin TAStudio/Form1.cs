@@ -216,7 +216,18 @@ namespace Dolphin_TAStudio
 
         private void cut_Data(object sender, EventArgs e)
         {
+            // First copy data
+            copy_Data(sender, e);
 
+            int firstIndex = inputView.SelectedRows[0].Index;
+            // Remove row(s)
+            foreach (DataGridViewRow row in inputView.SelectedRows)
+            {
+                inputView.Rows.RemoveAt(row.Index);
+            }
+
+            // Re-synchronize frame column
+            resync_FrameCount(firstIndex);
         }
 
         private void copy_Data(object sender, EventArgs e)
@@ -262,7 +273,8 @@ namespace Dolphin_TAStudio
             // Determine where to paste this row
             int rowIndex = inputView.SelectedRows[0].Index;
 
-            //inputView.Rows.Insert(rowIndex, row);
+            // Resynchronize frame column
+            resync_FrameCount(rowIndex);
         }
 
         private void insert_BlankFrame(object sender, EventArgs e)
