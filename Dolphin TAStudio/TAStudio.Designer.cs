@@ -78,14 +78,14 @@
             this.newCtrlNToolStripMenuItem.Name = "newCtrlNToolStripMenuItem";
             this.newCtrlNToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.newCtrlNToolStripMenuItem.Text = "New (Ctrl + N)";
-            this.newCtrlNToolStripMenuItem.Click += new System.EventHandler(this.newCtrlNToolStripMenuItem_Click);
+            this.newCtrlNToolStripMenuItem.Click += new System.EventHandler(this.NewCtrlNToolStripMenuItem_Click);
             // 
             // openToolStripMenuItem
             // 
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.openToolStripMenuItem.Text = "Open (Ctrl + O)";
-            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
             // saveToolStripMenuItem
             // 
@@ -104,6 +104,7 @@
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
             this.closeToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.closeToolStripMenuItem.Text = "Close";
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -125,21 +126,21 @@
             this.cutCtrlXToolStripMenuItem.Name = "cutCtrlXToolStripMenuItem";
             this.cutCtrlXToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.cutCtrlXToolStripMenuItem.Text = "Cut (Ctrl + X)";
-            this.cutCtrlXToolStripMenuItem.Click += new System.EventHandler(this.cutCtrlXToolStripMenuItem_Click);
+            this.cutCtrlXToolStripMenuItem.Click += new System.EventHandler(this.CutCtrlXToolStripMenuItem_Click);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
             this.copyToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.copyToolStripMenuItem.Text = "Copy (Ctrl + C)";
-            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.CopyToolStripMenuItem_Click);
             // 
             // pasteToolStripMenuItem
             // 
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
             this.pasteToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.pasteToolStripMenuItem.Text = "Paste (Ctrl + V)";
-            this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteCtrlVToolStripMenuItem_Click);
+            this.pasteToolStripMenuItem.Click += new System.EventHandler(this.PasteCtrlVToolStripMenuItem_Click);
             // 
             // insertFrameToolStripMenuItem
             // 
@@ -181,11 +182,11 @@
             this.inputView.Size = new System.Drawing.Size(633, 563);
             this.inputView.TabIndex = 1;
             this.inputView.VirtualMode = true;
-            this.inputView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.inputView_CellClick);
-            this.inputView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
-            this.inputView.CurrentCellDirtyStateChanged += new System.EventHandler(this.inputView_CurrentCellDirtyStateChanged);
-            this.inputView.NewRowNeeded += new System.Windows.Forms.DataGridViewRowEventHandler(this.inputView_NewRowNeeded);
-            this.inputView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.inputView_MouseClick);
+            this.inputView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.InputView_CellClick);
+            this.inputView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellContentClick);
+            this.inputView.CurrentCellDirtyStateChanged += new System.EventHandler(this.InputView_CurrentCellDirtyStateChanged);
+            this.inputView.NewRowNeeded += new System.Windows.Forms.DataGridViewRowEventHandler(this.InputView_NewRowNeeded);
+            this.inputView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.InputView_MouseClick);
             // 
             // playbackBox
             // 
@@ -197,9 +198,9 @@
             this.playbackBox.TabIndex = 2;
             this.playbackBox.TabStop = false;
             this.playbackBox.Text = "Playback";
-            this.playbackBox.Enter += new System.EventHandler(this.groupBox1_Enter);
+            this.playbackBox.Enter += new System.EventHandler(this.GroupBox1_Enter);
             // 
-            // Form1
+            // TAStudio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -208,7 +209,7 @@
             this.Controls.Add(this.inputView);
             this.Controls.Add(this.menuStrip1);
             this.MinimumSize = new System.Drawing.Size(885, 39);
-            this.Name = "Form1";
+            this.Name = "TAStudio";
             this.Text = "Dolphin TAStudio";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.menuStrip1.ResumeLayout(false);

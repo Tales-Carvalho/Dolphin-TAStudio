@@ -24,7 +24,7 @@ namespace Dolphin_TAStudio
         private bool dataCopiedToClipboard = false;
 
         // Represent columns in a list of tuples, to allow for easy modification should these column names change
-        private List<(string, string)> columnNames = new List<(string, string)>()
+        private readonly List<(string, string)> columnNames = new List<(string, string)>()
         {
             ("Save?", "Bool"),
             ("Frame", "Int"),
@@ -51,22 +51,22 @@ namespace Dolphin_TAStudio
         public TAStudio()
         {
             InitializeComponent();
-            disableMenuButtons();
+            DisableMenuButtons();
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void DataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
         }
 
-        private void groupBox1_Enter(object sender, EventArgs e)
+        private void GroupBox1_Enter(object sender, EventArgs e)
         {
 
         }
 
         #region Table format-related functions
 
-        private void tableGenerateColumns()
+        private void TableGenerateColumns()
         {
             foreach ((string, string) column in columnNames)
             {
@@ -75,7 +75,7 @@ namespace Dolphin_TAStudio
             }
         }
 
-        private void resizeInputViewColumns()
+        private void ResizeInputViewColumns()
         {
             for (int i = 0; i < table.Columns.Count; i++)
             {
@@ -91,13 +91,14 @@ namespace Dolphin_TAStudio
             }
         }
 
-        private void inputView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        private void InputView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
             // Handle the case where checkbox cell value changes are not instantly reflected
             if (inputView.IsCurrentCellDirty) inputView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            changed = true;
         }
 
-        private void inputView_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void InputView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             inputView.Rows[e.RowIndex].Selected = true;
             cutCtrlXToolStripMenuItem.Enabled = true;
@@ -105,175 +106,10 @@ namespace Dolphin_TAStudio
         }
         #endregion
 
-
-        #region Data functions
-        private void openData(string fileLocation)
-        {
-            // Read from file and assert that it is formatted properly
-            using (StreamReader reader = new StreamReader(fileLocation))
-            {
-                string data = reader.ReadLine();
-
-                while (!reader.EndOfStream)
-                {
-                    // TODO: Implement parser
-                }
-            }
-        }
-
-        private void clearDataTable()
-        {
-            table.Columns.Clear();
-            table.Clear();
-            disableMenuButtons();
-            fileName = null;
-            changed = false;
-        }
-
-        private string parse_Data(DataRow row)
-        {
-            string parsedData = "";
-            for (int j = 0; j < table.Columns.Count; j++)
-            {
-                object cell = row.ItemArray[j];
-
-                if (cell.GetType() == typeof(Int16))
-                {
-                    parsedData = parsedData + ((Int16)cell).ToString() + ",";
-                }
-                else if (cell.GetType() == typeof(DBNull))
-                {
-                    parsedData = parsedData + "false,";
-                }
-                else if (cell.GetType() == typeof(bool))
-                {
-                    parsedData = (bool)cell ? parsedData = parsedData + "true," : parsedData = parsedData + "false,";
-                }
-            }
-
-            return parsedData.Substring(0, parsedData.Length - 1) + ";";
-        }
-
-        private void cut_Data(object sender, EventArgs e)
-        {
-            // First copy data
-            copy_Data(sender, e);
-
-            int firstIndex = inputView.SelectedRows[0].Index;
-            // Remove row(s)
-            foreach (DataGridViewRow row in inputView.SelectedRows)
-            {
-                inputView.Rows.RemoveAt(row.Index);
-            }
-
-            // Re-synchronize frame column
-            resync_FrameCount(firstIndex);
-
-            dataCopiedToClipboard = true;
-        }
-
-        private void copy_Data(object sender, EventArgs e)
-        {
-            // Parse rows into a comma, separated string
-            string data = "";
-            
-            // Get selected rows and iterate through each cell to parse the value of cells to a string
-            DataGridViewSelectedRowCollection selectedRows = inputView.SelectedRows;
-            for (int i = 0; i < inputView.SelectedRows.Count; i++)
-            {
-                // Handle the instance when the user tries to copy the uncommitted new row
-                if (inputView.SelectedRows[i].Cells[0].Value == null)
-                {
-                    data = parse_Data(tableGenerateDefaultRow());
-                }
-                else
-                {
-                    int rowIndex = inputView.SelectedRows[i].Index;
-                    data = parse_Data(table.Rows[rowIndex]);
-                }
-            }
-            data = data.Substring(0, data.Length - 1);
-
-            Clipboard.SetText(data);
-
-            dataCopiedToClipboard = true;
-            pasteToolStripMenuItem.Enabled = true;
-        }
-
-        private void paste_Data(object sender, EventArgs e)
-        {
-            string data = Clipboard.GetText();
-            string[] rowsData = data.Split(';');
-
-            // Determine where to paste this row
-            int rowIndex = inputView.SelectedRows[0].Index;
-
-            // To overwrite rows, delete rows first
-            // CURRENT FUNCTIONALITY: Deletes all rows that are selected upon pasting
-            while (inputView.SelectedRows.Count > 0)
-            {
-                try
-                {
-                    inputView.Rows.RemoveAt(inputView.SelectedRows[0].Index);
-                }
-                catch(InvalidOperationException)
-                {
-                    // The user right clicked on the newest row... Just insert the row to the end
-                    break;
-                }
-            }
-
-            // Iterate each frame
-            for (int i = 0; i < rowsData.Length; i++)
-            {
-                DataRow rowData = table.NewRow();
-                string[] cellsData = rowsData[i].Split(',');
-
-                // Iterate each cell
-                for (int j = 0; j < table.Columns.Count; j++)
-                {
-                    rowData[j] = cellsData[j];
-                }
-
-                table.Rows.InsertAt(rowData, rowIndex + i);
-            }
-
-            // Resynchronize frame column
-            resync_FrameCount(rowIndex);
-        }
-
-        private void pasteInsert_Data(object sender, EventArgs e)
-        {
-            string data = Clipboard.GetText();
-            string[] dataRows = data.Split(';');
-
-            // Determine where to paste this row
-            int rowIndex = inputView.SelectedRows[0].Index;
-
-            // Iterate each frame
-            for (int i = 0; i < dataRows.Length; i++)
-            {
-                DataRow rowData = table.NewRow();
-                string[] dataCells = dataRows[i].Split(',');
-
-                // Iterate each cell
-                for (int j = 0; j < table.Columns.Count; j++)
-                {
-                    rowData[j] = dataCells[j];
-                }
-
-                table.Rows.InsertAt(rowData, rowIndex + i);
-            }
-
-            // Resynchronize frame column
-            resync_FrameCount(rowIndex);
-        }
-
-        #endregion
-
         #region I/O Functions
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
+            // On Enter, move down row or generate new row
             if (e.KeyCode == Keys.Enter)
             {
                 if (inputView.SelectedRows.Count == 0) return;
@@ -293,7 +129,7 @@ namespace Dolphin_TAStudio
                 //table.Rows.InsertAt(, lastIndex + 1);
             }
         }
-        private void inputView_MouseClick(object sender, MouseEventArgs e)
+        private void InputView_MouseClick(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
             {
@@ -329,11 +165,11 @@ namespace Dolphin_TAStudio
                     paste.Enabled = false;
                     pasteInsert.Enabled = false;
                 }
-                cut.Click += cut_Data;
-                copy.Click += copy_Data;
-                paste.Click += paste_Data;
-                insert.Click += insert_BlankFrame;
-                pasteInsert.Click += pasteInsert_Data;
+                cut.Click += Cut_Data;
+                copy.Click += Copy_Data;
+                paste.Click += Paste_Data;
+                insert.Click += Insert_BlankFrame;
+                pasteInsert.Click += PasteInsert_Data;
                 menu.MenuItems.Add(cut);
                 menu.MenuItems.Add(copy);
                 menu.MenuItems.Add(paste);
@@ -347,7 +183,7 @@ namespace Dolphin_TAStudio
 
         #region Functions relating to new row creation
 
-        private DataRow tableGenerateDefaultRow()
+        private DataRow TableGenerateDefaultRow()
         {
             DataRow newRow = table.NewRow();
             for (int i = 0; i < table.Columns.Count; i++)
@@ -362,7 +198,7 @@ namespace Dolphin_TAStudio
             return newRow;
         }
 
-        private void inputView_NewRowNeeded(object sender, DataGridViewRowEventArgs e)
+        private void InputView_NewRowNeeded(object sender, DataGridViewRowEventArgs e)
         {
             inputView.Rows[inputView.Rows.Count - 1].Cells["Frame"].Value = table.Rows.Count + 1;
             for (int i = 0; i < inputView.Columns.Count; i++)
@@ -375,14 +211,14 @@ namespace Dolphin_TAStudio
             }
         }
 
-        private void insert_BlankFrame(object sender, EventArgs e)
+        private void Insert_BlankFrame(object sender, EventArgs e)
         {
-            table.Rows.InsertAt(tableGenerateDefaultRow(), inputView.SelectedRows[0].Index);
+            table.Rows.InsertAt(TableGenerateDefaultRow(), inputView.SelectedRows[0].Index);
             MessageBox.Show(inputView.SelectedRows[0].Index.ToString());
-            resync_FrameCount(inputView.SelectedRows[0].Index - 1);
+            Resync_FrameCount(inputView.SelectedRows[0].Index - 1);
         }
 
-        private void resync_FrameCount(int index)
+        private void Resync_FrameCount(int index)
         {
             // In the event that a frame is inserted or deleted, we need to resynchronize the Frame column
             // Frame is correct up until index
@@ -396,7 +232,7 @@ namespace Dolphin_TAStudio
         #endregion
 
         #region Menu buttons
-        private void disableMenuButtons()
+        private void DisableMenuButtons()
         {
             cutCtrlXToolStripMenuItem.Enabled = false;
             copyToolStripMenuItem.Enabled = false;
@@ -410,24 +246,24 @@ namespace Dolphin_TAStudio
             insertFrameToolStripMenuItem.Enabled = false;
             insertFramesToolStripMenuItem.Enabled = false;
         }
-        private void newCtrlNToolStripMenuItem_Click(object sender, EventArgs e)
+        private void NewCtrlNToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // TODO: Save before quitting an open table
 
             // Disable menu buttons
-            disableMenuButtons();
+            DisableMenuButtons();
             //Enable close and saveAs
             closeToolStripMenuItem.Enabled = true;
             saveAsToolStripMenuItem.Enabled = true;
 
             // Generate a blank table with one default row
-            tableGenerateColumns();
-            table.Rows.Add(tableGenerateDefaultRow());
+            TableGenerateColumns();
+            table.Rows.Add(TableGenerateDefaultRow());
             inputView.DataSource = table;
-            resizeInputViewColumns();
+            ResizeInputViewColumns();
         }
 
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // TODO: Implement save before closing
             // if (changed)....
@@ -435,27 +271,207 @@ namespace Dolphin_TAStudio
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                clearDataTable();
+                ClearDataTable();
                 fileName = openFileDialog1.FileName;
-                openData(fileName);
+                OpenData(fileName);
             }
         }
 
-        private void copyToolStripMenuItem_Click(object sender, EventArgs e)
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            copy_Data(sender, e);
+            ClearDataTable();
+        }
+
+        private void CopyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Copy_Data(sender, e);
             pasteToolStripMenuItem.Enabled = true;
         }
 
-        private void cutCtrlXToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CutCtrlXToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            cut_Data(sender, e);
+            Cut_Data(sender, e);
             pasteToolStripMenuItem.Enabled = true;
         }
 
-        private void pasteCtrlVToolStripMenuItem_Click(object sender, EventArgs e)
+        private void PasteCtrlVToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            paste_Data(sender, e);
+            Paste_Data(sender, e);
+        }
+
+        #endregion
+
+        #region Data functions
+        private void OpenData(string fileLocation)
+        {
+            // TODO: Save before quitting
+            // Read from file and assert that it is formatted properly
+            using (StreamReader reader = new StreamReader(fileLocation))
+            {
+                string data;
+
+                while (!reader.EndOfStream)
+                {
+                    data = reader.ReadLine();
+                }
+            }
+        }
+
+        private void ClearDataTable()
+        {
+            if (changed)
+            {
+                DialogResult result = MessageBox.Show("Are you sure you want to clear the table?", "Close", MessageBoxButtons.YesNo);
+                if (result == DialogResult.No) return;
+            }
+            table.Columns.Clear();
+            table.Clear();
+            DisableMenuButtons();
+            fileName = null;
+            changed = false;
+        }
+
+        private string Parse_Data(DataRow row)
+        {
+            string parsedData = "";
+            for (int j = 0; j < table.Columns.Count; j++)
+            {
+                object cell = row.ItemArray[j];
+
+                if (cell.GetType() == typeof(Int16))
+                {
+                    parsedData = parsedData + ((Int16)cell).ToString() + ",";
+                }
+                else if (cell.GetType() == typeof(DBNull))
+                {
+                    parsedData += "false,";
+                }
+                else if (cell.GetType() == typeof(bool))
+                {
+                    parsedData = (bool)cell ? parsedData += "true," : parsedData += "false,";
+                }
+            }
+
+            return parsedData.Substring(0, parsedData.Length - 1) + ";";
+        }
+
+        private void Cut_Data(object sender, EventArgs e)
+        {
+            // First copy data
+            Copy_Data(sender, e);
+
+            int firstIndex = inputView.SelectedRows[0].Index;
+            // Remove row(s)
+            foreach (DataGridViewRow row in inputView.SelectedRows)
+            {
+                inputView.Rows.RemoveAt(row.Index);
+            }
+
+            // Re-synchronize frame column
+            Resync_FrameCount(firstIndex);
+
+            dataCopiedToClipboard = true;
+            changed = true;
+        }
+
+        private void Copy_Data(object sender, EventArgs e)
+        {
+            // Parse rows into a comma, separated string
+            string data = "";
+
+            // Get selected rows and iterate through each cell to parse the value of cells to a string
+            for (int i = 0; i < inputView.SelectedRows.Count; i++)
+            {
+                // Handle the instance when the user tries to copy the uncommitted new row
+                if (inputView.SelectedRows[i].Cells[0].Value == null)
+                {
+                    data = Parse_Data(TableGenerateDefaultRow());
+                }
+                else
+                {
+                    int rowIndex = inputView.SelectedRows[i].Index;
+                    data = Parse_Data(table.Rows[rowIndex]);
+                }
+            }
+            data = data.Substring(0, data.Length - 1);
+
+            Clipboard.SetText(data);
+
+            dataCopiedToClipboard = true;
+            pasteToolStripMenuItem.Enabled = true;
+        }
+
+        private void Paste_Data(object sender, EventArgs e)
+        {
+            string data = Clipboard.GetText();
+            string[] rowsData = data.Split(';');
+
+            // Determine where to paste this row
+            int rowIndex = inputView.SelectedRows[0].Index;
+
+            // To overwrite rows, delete rows first
+            // CURRENT FUNCTIONALITY: Deletes all rows that are selected upon pasting
+            while (inputView.SelectedRows.Count > 0)
+            {
+                try
+                {
+                    inputView.Rows.RemoveAt(inputView.SelectedRows[0].Index);
+                }
+                catch (InvalidOperationException)
+                {
+                    // The user right clicked on the newest row... Just insert the row to the end
+                    break;
+                }
+            }
+
+            // Iterate each frame
+            for (int i = 0; i < rowsData.Length; i++)
+            {
+                DataRow rowData = table.NewRow();
+                string[] cellsData = rowsData[i].Split(',');
+
+                // Iterate each cell
+                for (int j = 0; j < table.Columns.Count; j++)
+                {
+                    rowData[j] = cellsData[j];
+                }
+
+                table.Rows.InsertAt(rowData, rowIndex + i);
+            }
+
+            changed = true;
+
+            // Resynchronize frame column
+            Resync_FrameCount(rowIndex);
+        }
+
+        private void PasteInsert_Data(object sender, EventArgs e)
+        {
+            string data = Clipboard.GetText();
+            string[] dataRows = data.Split(';');
+
+            // Determine where to paste this row
+            int rowIndex = inputView.SelectedRows[0].Index;
+
+            // Iterate each frame
+            for (int i = 0; i < dataRows.Length; i++)
+            {
+                DataRow rowData = table.NewRow();
+                string[] dataCells = dataRows[i].Split(',');
+
+                // Iterate each cell
+                for (int j = 0; j < table.Columns.Count; j++)
+                {
+                    rowData[j] = dataCells[j];
+                }
+
+                table.Rows.InsertAt(rowData, rowIndex + i);
+            }
+
+            changed = true;
+
+            // Resynchronize frame column
+            Resync_FrameCount(rowIndex);
         }
 
         #endregion
