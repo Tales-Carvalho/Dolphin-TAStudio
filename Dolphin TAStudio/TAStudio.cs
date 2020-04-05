@@ -16,7 +16,7 @@ using System.IO;
 
 namespace Dolphin_TAStudio
 {
-    public partial class Form1 : Form
+    public partial class TAStudio : Form
     {
         private DataTable table = new DataTable();
         private string fileName;
@@ -48,7 +48,7 @@ namespace Dolphin_TAStudio
             ("cY", "Int")
         };
 
-        public Form1()
+        public TAStudio()
         {
             InitializeComponent();
             disableMenuButtons();

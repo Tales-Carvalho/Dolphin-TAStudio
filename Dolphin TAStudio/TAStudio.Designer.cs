@@ -1,6 +1,6 @@
 ﻿namespace Dolphin_TAStudio
 {
-    partial class Form1
+    partial class TAStudio
     {
         /// <summary>
         /// Required designer variable.
@@ -39,13 +39,13 @@
             this.cutCtrlXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.insertFrameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.insertFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteInsertToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inputView = new System.Windows.Forms.DataGridView();
             this.playbackBox = new System.Windows.Forms.GroupBox();
-            this.insertFrameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pasteInsertToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.insertFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputView)).BeginInit();
             this.SuspendLayout();
@@ -123,34 +123,52 @@
             // cutCtrlXToolStripMenuItem
             // 
             this.cutCtrlXToolStripMenuItem.Name = "cutCtrlXToolStripMenuItem";
-            this.cutCtrlXToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.cutCtrlXToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.cutCtrlXToolStripMenuItem.Text = "Cut (Ctrl + X)";
             this.cutCtrlXToolStripMenuItem.Click += new System.EventHandler(this.cutCtrlXToolStripMenuItem_Click);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.copyToolStripMenuItem.Text = "Copy (Ctrl + C)";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // pasteToolStripMenuItem
             // 
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.pasteToolStripMenuItem.Text = "Paste (Ctrl + V)";
             this.pasteToolStripMenuItem.Click += new System.EventHandler(this.pasteCtrlVToolStripMenuItem_Click);
+            // 
+            // insertFrameToolStripMenuItem
+            // 
+            this.insertFrameToolStripMenuItem.Name = "insertFrameToolStripMenuItem";
+            this.insertFrameToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.insertFrameToolStripMenuItem.Text = "Insert Frame";
+            // 
+            // insertFramesToolStripMenuItem
+            // 
+            this.insertFramesToolStripMenuItem.Name = "insertFramesToolStripMenuItem";
+            this.insertFramesToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.insertFramesToolStripMenuItem.Text = "Insert Frames";
+            // 
+            // pasteInsertToolStripMenuItem
+            // 
+            this.pasteInsertToolStripMenuItem.Name = "pasteInsertToolStripMenuItem";
+            this.pasteInsertToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.pasteInsertToolStripMenuItem.Text = "Paste Insert";
             // 
             // undoToolStripMenuItem
             // 
             this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
-            this.undoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.undoToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.undoToolStripMenuItem.Text = "Undo (Ctrl + Z)";
             // 
             // redoToolStripMenuItem
             // 
             this.redoToolStripMenuItem.Name = "redoToolStripMenuItem";
-            this.redoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.redoToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.redoToolStripMenuItem.Text = "Redo (Ctrl + Y)";
             // 
             // inputView
@@ -181,24 +199,6 @@
             this.playbackBox.Text = "Playback";
             this.playbackBox.Enter += new System.EventHandler(this.groupBox1_Enter);
             // 
-            // insertFrameToolStripMenuItem
-            // 
-            this.insertFrameToolStripMenuItem.Name = "insertFrameToolStripMenuItem";
-            this.insertFrameToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.insertFrameToolStripMenuItem.Text = "Insert Frame";
-            // 
-            // pasteInsertToolStripMenuItem
-            // 
-            this.pasteInsertToolStripMenuItem.Name = "pasteInsertToolStripMenuItem";
-            this.pasteInsertToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.pasteInsertToolStripMenuItem.Text = "Paste Insert";
-            // 
-            // insertFramesToolStripMenuItem
-            // 
-            this.insertFramesToolStripMenuItem.Name = "insertFramesToolStripMenuItem";
-            this.insertFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.insertFramesToolStripMenuItem.Text = "Insert Frames";
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -209,7 +209,7 @@
             this.Controls.Add(this.menuStrip1);
             this.MinimumSize = new System.Drawing.Size(885, 39);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "Dolphin TAStudio";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
