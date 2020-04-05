@@ -36,13 +36,16 @@
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cutCtrlXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.undoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inputView = new System.Windows.Forms.DataGridView();
             this.playbackBox = new System.Windows.Forms.GroupBox();
-            this.cutCtrlXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.insertFrameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteInsertToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.insertFramesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputView)).BeginInit();
             this.SuspendLayout();
@@ -108,12 +111,21 @@
             this.cutCtrlXToolStripMenuItem,
             this.copyToolStripMenuItem,
             this.pasteToolStripMenuItem,
+            this.insertFrameToolStripMenuItem,
+            this.insertFramesToolStripMenuItem,
+            this.pasteInsertToolStripMenuItem,
             this.undoToolStripMenuItem,
             this.redoToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
             this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
-            this.editToolStripMenuItem.Click += new System.EventHandler(this.editToolStripMenuItem_Click);
+            // 
+            // cutCtrlXToolStripMenuItem
+            // 
+            this.cutCtrlXToolStripMenuItem.Name = "cutCtrlXToolStripMenuItem";
+            this.cutCtrlXToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.cutCtrlXToolStripMenuItem.Text = "Cut (Ctrl + X)";
+            this.cutCtrlXToolStripMenuItem.Click += new System.EventHandler(this.cutCtrlXToolStripMenuItem_Click);
             // 
             // copyToolStripMenuItem
             // 
@@ -169,12 +181,23 @@
             this.playbackBox.Text = "Playback";
             this.playbackBox.Enter += new System.EventHandler(this.groupBox1_Enter);
             // 
-            // cutCtrlXToolStripMenuItem
+            // insertFrameToolStripMenuItem
             // 
-            this.cutCtrlXToolStripMenuItem.Name = "cutCtrlXToolStripMenuItem";
-            this.cutCtrlXToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.cutCtrlXToolStripMenuItem.Text = "Cut (Ctrl + X)";
-            this.cutCtrlXToolStripMenuItem.Click += new System.EventHandler(this.cutCtrlXToolStripMenuItem_Click);
+            this.insertFrameToolStripMenuItem.Name = "insertFrameToolStripMenuItem";
+            this.insertFrameToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.insertFrameToolStripMenuItem.Text = "Insert Frame";
+            // 
+            // pasteInsertToolStripMenuItem
+            // 
+            this.pasteInsertToolStripMenuItem.Name = "pasteInsertToolStripMenuItem";
+            this.pasteInsertToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pasteInsertToolStripMenuItem.Text = "Paste Insert";
+            // 
+            // insertFramesToolStripMenuItem
+            // 
+            this.insertFramesToolStripMenuItem.Name = "insertFramesToolStripMenuItem";
+            this.insertFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.insertFramesToolStripMenuItem.Text = "Insert Frames";
             // 
             // Form1
             // 
@@ -213,6 +236,9 @@
         private System.Windows.Forms.GroupBox playbackBox;
         private System.Windows.Forms.ToolStripMenuItem newCtrlNToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cutCtrlXToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem insertFrameToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pasteInsertToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem insertFramesToolStripMenuItem;
     }
 }
 
