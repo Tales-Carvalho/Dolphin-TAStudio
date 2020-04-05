@@ -19,8 +19,20 @@ namespace Dolphin_TAStudio
     public partial class TAStudio : Form
     {
         private DataTable table = new DataTable();
-        private string fileName;
-        private bool changed = false;
+        private string fileName = "";
+        public bool Changed
+        {
+            get { return _changed; }
+            set
+            {
+                this._changed = value;
+                if (this._changed)
+                {
+                    saveToolStripMenuItem.Enabled = true;
+                }
+            }
+        }
+        private bool _changed = false;
         private bool dataCopiedToClipboard = false;
 
         // Represent columns in a list of tuples, to allow for easy modification should these column names change
@@ -54,16 +66,6 @@ namespace Dolphin_TAStudio
             DisableMenuButtons();
         }
 
-        private void DataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void GroupBox1_Enter(object sender, EventArgs e)
-        {
-
-        }
-
         #region Table format-related functions
 
         private void TableGenerateColumns()
@@ -95,7 +97,7 @@ namespace Dolphin_TAStudio
         {
             // Handle the case where checkbox cell value changes are not instantly reflected
             if (inputView.IsCurrentCellDirty) inputView.CommitEdit(DataGridViewDataErrorContexts.Commit);
-            changed = true;
+            Changed = true;
         }
 
         private void InputView_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -263,21 +265,40 @@ namespace Dolphin_TAStudio
             ResizeInputViewColumns();
         }
 
+        private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // Prompt the user to save
+            if (fileName == "")
+            {
+                SaveFileDialog save = new SaveFileDialog
+                {
+                    Title = "Save Opened TAStudio Frame Table",
+                    Filter = "TAStudio Frame Table|*.tas"
+                };
+                save.ShowDialog();
+
+                if (save.FileName != "")
+                {
+                    Save_Data(save.FileName);
+                }
+            }
+        }
+
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // TODO: Implement save before closing
             // if (changed)....
 
-            OpenFileDialog openFileDialog1 = new OpenFileDialog();
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            OpenFileDialog open = new OpenFileDialog();
+            if (open.ShowDialog() == DialogResult.OK)
             {
                 ClearDataTable();
-                fileName = openFileDialog1.FileName;
-                OpenData(fileName);
+                fileName = open.FileName;
+                Open_Data(fileName);
             }
         }
 
-        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CloseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ClearDataTable();
         }
@@ -302,9 +323,34 @@ namespace Dolphin_TAStudio
         #endregion
 
         #region Data functions
-        private void OpenData(string fileLocation)
+
+        private void Save_Data(string fileLocation)
         {
-            // TODO: Save before quitting
+            string data = "";
+
+            using (StreamWriter file = new StreamWriter(fileLocation))
+            {
+                // First write column headers to the file
+                for (int i = 0; i < table.Columns.Count; i++)
+                {
+                    data += table.Columns[i].ColumnName + ",";
+                }
+                data = data.Substring(0, data.Length - 1);
+
+                file.WriteLine(data);
+
+                for (int i = 0; i < table.Rows.Count; i++)
+                {
+                    DataRow row = table.Rows[i];
+                    data = Parse_Data(row);
+                    data = data.Substring(0, data.Length - 1);
+
+                    file.WriteLine(data);
+                }
+            }
+        }
+        private void Open_Data(string fileLocation)
+        {
             // Read from file and assert that it is formatted properly
             using (StreamReader reader = new StreamReader(fileLocation))
             {
@@ -319,7 +365,7 @@ namespace Dolphin_TAStudio
 
         private void ClearDataTable()
         {
-            if (changed)
+            if (Changed)
             {
                 DialogResult result = MessageBox.Show("Are you sure you want to clear the table?", "Close", MessageBoxButtons.YesNo);
                 if (result == DialogResult.No) return;
@@ -328,7 +374,7 @@ namespace Dolphin_TAStudio
             table.Clear();
             DisableMenuButtons();
             fileName = null;
-            changed = false;
+            Changed = false;
         }
 
         private string Parse_Data(DataRow row)
@@ -371,7 +417,7 @@ namespace Dolphin_TAStudio
             Resync_FrameCount(firstIndex);
 
             dataCopiedToClipboard = true;
-            changed = true;
+            Changed = true;
         }
 
         private void Copy_Data(object sender, EventArgs e)
@@ -439,7 +485,7 @@ namespace Dolphin_TAStudio
                 table.Rows.InsertAt(rowData, rowIndex + i);
             }
 
-            changed = true;
+            Changed = true;
 
             // Resynchronize frame column
             Resync_FrameCount(rowIndex);
@@ -468,7 +514,7 @@ namespace Dolphin_TAStudio
                 table.Rows.InsertAt(rowData, rowIndex + i);
             }
 
-            changed = true;
+            Changed = true;
 
             // Resynchronize frame column
             Resync_FrameCount(rowIndex);

@@ -92,6 +92,7 @@
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.saveToolStripMenuItem.Text = "Save (Ctrl + S)";
+            this.saveToolStripMenuItem.Click += new System.EventHandler(this.SaveToolStripMenuItem_Click);
             // 
             // saveAsToolStripMenuItem
             // 
@@ -104,7 +105,7 @@
             this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
             this.closeToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.closeToolStripMenuItem.Text = "Close";
-            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.CloseToolStripMenuItem_Click);
             // 
             // editToolStripMenuItem
             // 
@@ -183,7 +184,6 @@
             this.inputView.TabIndex = 1;
             this.inputView.VirtualMode = true;
             this.inputView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.InputView_CellClick);
-            this.inputView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DataGridView1_CellContentClick);
             this.inputView.CurrentCellDirtyStateChanged += new System.EventHandler(this.InputView_CurrentCellDirtyStateChanged);
             this.inputView.NewRowNeeded += new System.Windows.Forms.DataGridViewRowEventHandler(this.InputView_NewRowNeeded);
             this.inputView.MouseClick += new System.Windows.Forms.MouseEventHandler(this.InputView_MouseClick);
@@ -198,7 +198,6 @@
             this.playbackBox.TabIndex = 2;
             this.playbackBox.TabStop = false;
             this.playbackBox.Text = "Playback";
-            this.playbackBox.Enter += new System.EventHandler(this.GroupBox1_Enter);
             // 
             // TAStudio
             // 
