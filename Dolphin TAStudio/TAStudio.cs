@@ -1,4 +1,7 @@
 ﻿/* TODO:
+ * Change title on save, save as, and open
+ *      Remove title on close
+ *      Untitles on new
  * implement save/open
  * implement save before new
 */
@@ -29,6 +32,10 @@ namespace Dolphin_TAStudio
                 if (this._changed)
                 {
                     saveToolStripMenuItem.Enabled = true;
+                }
+                else
+                {
+                    saveToolStripMenuItem.Enabled = false;
                 }
             }
         }
@@ -252,6 +259,7 @@ namespace Dolphin_TAStudio
         {
             // TODO: Save before quitting an open table
 
+            this.Text = "Dolphin TAStudio - Untitled";
             // Disable menu buttons
             DisableMenuButtons();
             //Enable close and saveAs
@@ -270,18 +278,26 @@ namespace Dolphin_TAStudio
             // Prompt the user to save
             if (fileName == "")
             {
-                SaveFileDialog save = new SaveFileDialog
-                {
-                    Title = "Save Opened TAStudio Frame Table",
-                    Filter = "TAStudio Frame Table|*.tas"
-                };
-                save.ShowDialog();
-
-                if (save.FileName != "")
-                {
-                    Save_Data(save.FileName);
-                }
+                SaveAsToolStripMenuItem_Click(sender, e);
             }
+            else
+            {
+                Save_Data(fileName);
+            }
+        }
+
+        private void SaveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog save = new SaveFileDialog
+            {
+                Title = "Save Opened TAStudio Frame Table",
+                Filter = "TAStudio Frame Table|*.tas"
+            };
+            save.ShowDialog();
+            if (save.FileName == "") return;
+
+            Save_Data(save.FileName);
+            this.Text = "Dolphin TAStudio - " + Path.GetFileName(save.FileName);
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -289,18 +305,25 @@ namespace Dolphin_TAStudio
             // TODO: Implement save before closing
             // if (changed)....
 
-            OpenFileDialog open = new OpenFileDialog();
+            OpenFileDialog open = new OpenFileDialog
+            {
+                Title = "Open TAStudio Frame Table",
+                Filter = "TAStudio Frame Table|*.tas",
+                Multiselect = false
+            };
+
             if (open.ShowDialog() == DialogResult.OK)
             {
                 ClearDataTable();
-                fileName = open.FileName;
-                Open_Data(fileName);
+                Open_Data(open.FileName);
+                this.Text = "Dolphin TAStudio - " + Path.GetFileName(open.FileName);
             }
         }
 
         private void CloseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ClearDataTable();
+            this.Text = "Dolphin TAStudio";
         }
 
         private void CopyToolStripMenuItem_Click(object sender, EventArgs e)
@@ -328,6 +351,12 @@ namespace Dolphin_TAStudio
         {
             string data = "";
 
+            using (FileStream fileStream = File.Open(fileLocation, FileMode.Open))
+            {
+                fileStream.SetLength(0);
+                fileStream.Close();
+            }
+
             using (StreamWriter file = new StreamWriter(fileLocation))
             {
                 // First write column headers to the file
@@ -343,24 +372,100 @@ namespace Dolphin_TAStudio
                 {
                     DataRow row = table.Rows[i];
                     data = Parse_Data(row);
+                    MessageBox.Show(data);
                     data = data.Substring(0, data.Length - 1);
 
                     file.WriteLine(data);
                 }
             }
+
+            fileName = Path.GetFileName(fileLocation);
+            Changed = false;
         }
+
         private void Open_Data(string fileLocation)
         {
             // Read from file and assert that it is formatted properly
             using (StreamReader reader = new StreamReader(fileLocation))
             {
                 string data;
+                data = reader.ReadLine(); // Column names
 
+                // Assert that the number of columns is the same as the number of intended columns
+                string[] dataColumnNames = data.Split(',');
+                if (dataColumnNames.Length != columnNames.Count)
+                {
+                    MessageBox.Show("Cannot open file: Number of columns is incorrect.", "Open File Error", MessageBoxButtons.OK);
+                    return;
+                }
+                for (int i = 0; i < columnNames.Count; i++)
+                {
+                    if (columnNames[i].Item1 != dataColumnNames[i])
+                    {
+                        MessageBox.Show("Cannot open file: Unexpected column name: " + columnNames[i].Item1, "Open File Error", MessageBoxButtons.OK);
+                        return;
+                    }
+                }
+
+                TableGenerateColumns();
+
+                // Column names match. Begin reading data
                 while (!reader.EndOfStream)
                 {
                     data = reader.ReadLine();
+                    MessageBox.Show(data);
+                    DataRow newRow = table.NewRow();
+
+                    string[] cellData = data.Split(',');
+
+                    for (int i = 0; i < columnNames.Count; i++)
+                    {
+                        if (columnNames[i].Item2 == "Int")
+                        {
+                            // If the file's integer cell value is < 0 or > 255, then fix
+                            if (Convert.ToInt16(cellData[i]) < 0)
+                            {
+                                newRow[table.Columns[i]] = 0;
+                            }
+                            else if (Convert.ToInt16(cellData[i]) > 255)
+                            {
+                                newRow[table.Columns[i]] = 255;
+                            }
+                            else
+                            {
+                                newRow[table.Columns[i]] = cellData[i];
+                            }
+                        }
+                        else if (columnNames[i].Item2 == "Bool")
+                        {
+                            if (cellData[i] == "true")
+                            {
+                                newRow[table.Columns[i]] = true;
+                            }
+                            else if (cellData[i] == "false")
+                            {
+                                newRow[table.Columns[i]] = false;
+                            }
+                        }
+                    }
+
+                    table.Rows.Add(newRow);
                 }
+
+                inputView.DataSource = table;
+
+                // Resize column widths
+                ResizeInputViewColumns();
+
+                // Resync frame column
+                Resync_FrameCount(0);
             }
+
+            // Enable close and save as menu buttons
+            closeToolStripMenuItem.Enabled = true;
+            saveAsToolStripMenuItem.Enabled = true;
+
+            fileName = Path.GetFileName(fileLocation);
         }
 
         private void ClearDataTable()

@@ -99,6 +99,7 @@
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
             this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(202, 22);
             this.saveAsToolStripMenuItem.Text = "Save As (Ctrl + Shift + S)";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
             // 
             // closeToolStripMenuItem
             // 
