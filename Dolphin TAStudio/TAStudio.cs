@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using Microsoft.VisualBasic;
 
 namespace Dolphin_TAStudio
 {
@@ -66,6 +67,8 @@ namespace Dolphin_TAStudio
             ("cX", "Int"),
             ("cY", "Int")
         };
+
+        DolphinMemoryInterface interface1 = new DolphinMemoryInterface();
 
         public TAStudio()
         {
@@ -626,5 +629,41 @@ namespace Dolphin_TAStudio
         }
 
         #endregion
+
+        #region Playback Controls
+        private void FrameAdvance_Click(object sender, EventArgs e)
+        {
+            interface1.FrameAdvance();
+        }
+
+        #endregion
+
+        private void Play_Click(object sender, EventArgs e)
+        {
+            interface1.PlayEmulation();
+        }
+
+        private void Pause_Click(object sender, EventArgs e)
+        {
+            interface1.PauseEmulation();
+        }
+
+        private void Savestate_Click(object sender, EventArgs e)
+        {
+            interface1.SaveState();
+        }
+
+        private void LoadState_Click(object sender, EventArgs e)
+        {
+            interface1.LoadState();
+        }
+
+        private void SetStateName_Click(object sender, EventArgs e)
+        {
+            string name = Interaction.InputBox("Enter a savestate name", "Set Savestate Name", "", 0, 0);
+            //if ((name.Substring(name.Length - 5)) != ".dtm") name += ".dtm";
+                    
+            interface1.SetStateName(name);
+        }
     }
 }

@@ -46,8 +46,15 @@
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inputView = new System.Windows.Forms.DataGridView();
             this.playbackBox = new System.Windows.Forms.GroupBox();
+            this.Play = new System.Windows.Forms.Button();
+            this.FrameAdvance = new System.Windows.Forms.Button();
+            this.Pause = new System.Windows.Forms.Button();
+            this.Savestate = new System.Windows.Forms.Button();
+            this.LoadState = new System.Windows.Forms.Button();
+            this.SetStateName = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputView)).BeginInit();
+            this.playbackBox.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -193,12 +200,78 @@
             // 
             this.playbackBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.playbackBox.Controls.Add(this.SetStateName);
+            this.playbackBox.Controls.Add(this.LoadState);
+            this.playbackBox.Controls.Add(this.Savestate);
+            this.playbackBox.Controls.Add(this.Pause);
+            this.playbackBox.Controls.Add(this.Play);
+            this.playbackBox.Controls.Add(this.FrameAdvance);
             this.playbackBox.Location = new System.Drawing.Point(651, 27);
             this.playbackBox.Name = "playbackBox";
-            this.playbackBox.Size = new System.Drawing.Size(206, 100);
+            this.playbackBox.Size = new System.Drawing.Size(206, 110);
             this.playbackBox.TabIndex = 2;
             this.playbackBox.TabStop = false;
             this.playbackBox.Text = "Playback";
+            // 
+            // Play
+            // 
+            this.Play.Location = new System.Drawing.Point(6, 48);
+            this.Play.Name = "Play";
+            this.Play.Size = new System.Drawing.Size(95, 23);
+            this.Play.TabIndex = 1;
+            this.Play.Text = "Play";
+            this.Play.UseVisualStyleBackColor = true;
+            this.Play.Click += new System.EventHandler(this.Play_Click);
+            // 
+            // FrameAdvance
+            // 
+            this.FrameAdvance.Location = new System.Drawing.Point(6, 19);
+            this.FrameAdvance.Name = "FrameAdvance";
+            this.FrameAdvance.Size = new System.Drawing.Size(95, 23);
+            this.FrameAdvance.TabIndex = 0;
+            this.FrameAdvance.Text = "Frame Advance";
+            this.FrameAdvance.UseVisualStyleBackColor = true;
+            this.FrameAdvance.Click += new System.EventHandler(this.FrameAdvance_Click);
+            // 
+            // Pause
+            // 
+            this.Pause.Location = new System.Drawing.Point(7, 77);
+            this.Pause.Name = "Pause";
+            this.Pause.Size = new System.Drawing.Size(94, 23);
+            this.Pause.TabIndex = 2;
+            this.Pause.Text = "Pause";
+            this.Pause.UseVisualStyleBackColor = true;
+            this.Pause.Click += new System.EventHandler(this.Pause_Click);
+            // 
+            // Savestate
+            // 
+            this.Savestate.Location = new System.Drawing.Point(107, 48);
+            this.Savestate.Name = "Savestate";
+            this.Savestate.Size = new System.Drawing.Size(93, 23);
+            this.Savestate.TabIndex = 3;
+            this.Savestate.Text = "Savestate";
+            this.Savestate.UseVisualStyleBackColor = true;
+            this.Savestate.Click += new System.EventHandler(this.Savestate_Click);
+            // 
+            // LoadState
+            // 
+            this.LoadState.Location = new System.Drawing.Point(107, 77);
+            this.LoadState.Name = "LoadState";
+            this.LoadState.Size = new System.Drawing.Size(93, 23);
+            this.LoadState.TabIndex = 4;
+            this.LoadState.Text = "Load State";
+            this.LoadState.UseVisualStyleBackColor = true;
+            this.LoadState.Click += new System.EventHandler(this.LoadState_Click);
+            // 
+            // SetStateName
+            // 
+            this.SetStateName.Location = new System.Drawing.Point(108, 18);
+            this.SetStateName.Name = "SetStateName";
+            this.SetStateName.Size = new System.Drawing.Size(92, 23);
+            this.SetStateName.TabIndex = 5;
+            this.SetStateName.Text = "Set State Name";
+            this.SetStateName.UseVisualStyleBackColor = true;
+            this.SetStateName.Click += new System.EventHandler(this.SetStateName_Click);
             // 
             // TAStudio
             // 
@@ -215,6 +288,7 @@
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputView)).EndInit();
+            this.playbackBox.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -240,6 +314,12 @@
         private System.Windows.Forms.ToolStripMenuItem insertFrameToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pasteInsertToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem insertFramesToolStripMenuItem;
+        private System.Windows.Forms.Button FrameAdvance;
+        private System.Windows.Forms.Button Play;
+        private System.Windows.Forms.Button Pause;
+        private System.Windows.Forms.Button Savestate;
+        private System.Windows.Forms.Button LoadState;
+        private System.Windows.Forms.Button SetStateName;
     }
 }
 
