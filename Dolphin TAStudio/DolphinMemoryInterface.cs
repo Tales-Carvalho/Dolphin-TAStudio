@@ -43,8 +43,8 @@ namespace Dolphin_TAStudio
             public byte SaveState; // If 1, save StateName.sav
             public byte IsMoviePlayingBack; // If 1, Movie is playing back
             public byte ReadOnly; // ReadOnly = 1; ReadWrite = 2
-            public byte InputActive; // If 1, input from ControllerInput is read
-            public byte LazyFixPleaseRemoveMeLater;
+            public byte InputActive; // If 1, Dolphin reads inputs from ControllerInput
+            public byte NotImplemented; // Extra byte to align next variables in memory
 
             [MarshalAs(UnmanagedType.U8)]
             public ulong FrameCount;
@@ -62,85 +62,76 @@ namespace Dolphin_TAStudio
             public string StateName; // Filename used by LoadState and SaveState functions
         };
 
+        public event EventHandler FrameCountChanged = null;
+        public event EventHandler InputFrameCountChanged = null;
+        public event EventHandler MoviePlaybackStateChanged = null;
+
         private const string MEMORY_MAP_OBJECT = "DolphinMappingObject";
 
         private MemoryMappedFile m_file;
         private MemoryMappedViewAccessor m_accessor;
+        private MInterface m_mInterface;
+
+        private ulong _frameCount;
+        private ulong _inputFrameCount;
+        private byte _moviePlayingBack;
 
         public DolphinMemoryInterface()
         {
             m_file = MemoryMappedFile.OpenExisting(MEMORY_MAP_OBJECT);
             m_accessor = m_file.CreateViewAccessor(0, 256, MemoryMappedFileAccess.ReadWrite);
+            m_mInterface = ReadStructFromMemory();
+            _frameCount = m_mInterface.FrameCount;
+            _inputFrameCount = m_mInterface.InputFrameCount;
+            _moviePlayingBack = m_mInterface.IsMoviePlayingBack;
+            
+            new Timer(Update, null, 0, 10);
         }
 
-        public void FrameAdvance()
+        public void Update(object stateInfo)
         {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "FrameAdvance");
-            m_accessor.Write(position, (byte)1);
+            m_mInterface = ReadStructFromMemory();
+            if (m_mInterface.FrameCount != _frameCount && FrameCountChanged != null)
+            {
+                FrameCountChanged(this, EventArgs.Empty);
+            }
+            _frameCount = m_mInterface.FrameCount;
+            if (m_mInterface.InputFrameCount != _inputFrameCount && InputFrameCountChanged != null)
+            {
+                InputFrameCountChanged(this, EventArgs.Empty);
+            }
+            _inputFrameCount = m_mInterface.InputFrameCount;
+            if (m_mInterface.IsMoviePlayingBack != _moviePlayingBack && MoviePlaybackStateChanged != null)
+            {
+                MoviePlaybackStateChanged(this, EventArgs.Empty);
+            }
+            _moviePlayingBack = m_mInterface.IsMoviePlayingBack;
         }
 
-        public void PlayEmulation()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "PlayPause");
-            m_accessor.Write(position, (byte)1);
-        }
+        public void FrameAdvance() { WriteByteToMemory("FrameAdvance", 1); }
+        public void PlayEmulation() { WriteByteToMemory("PlayPause", 1); }
+        public void PauseEmulation() { WriteByteToMemory("PlayPause", 2); }
+        public void SaveState() { WriteByteToMemory("SaveState", 1); }
+        public void LoadState() { WriteByteToMemory("LoadState", 1); }
+        public void SetReadOnly() { WriteByteToMemory("ReadOnly", 1); }
+        public void SetReadWrite() { WriteByteToMemory("ReadOnly", 2); }
+        public void ActivateInputs() { WriteByteToMemory("InputActive", 1); }
+        public void DeactivateInputs() { WriteByteToMemory("InputActive", 0); }
 
-        public void PauseEmulation()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "PlayPause");
-            m_accessor.Write(position, (byte)2);
-        }
-
-        public void SaveState()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "SaveState");
-            m_accessor.Write(position, (byte)1);
-        }
-
-        public void LoadState()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "LoadState");
-            m_accessor.Write(position, (byte)1);
-        }
-
-        public void SetReadOnly()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "ReadOnly");
-            m_accessor.Write(position, (byte)1);
-        }
-
-        public void SetReadWrite()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "ReadOnly");
-            m_accessor.Write(position, (byte)2);
-        }
-
-        public void ActivateInputs()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "InputActive");
-            m_accessor.Write(position, (byte)1);
-        }
-
-        public void DeactivateInputs()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "InputActive");
-            m_accessor.Write(position, (byte)0);
-        }
-
-        public ulong GetFrameCount()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "FrameCount");
-            return m_accessor.ReadUInt64(position);
-        }
-
-        public ulong GetInputFrameCount()
-        {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "InputFrameCount");
-            return m_accessor.ReadUInt64(position);
-        }
+        public bool IsMoviePlayingBack() { return (m_mInterface.IsMoviePlayingBack == 1); }
+        public ulong GetFrameCount() { return m_mInterface.FrameCount; }
+        public ulong GetInputFrameCount() { return m_mInterface.InputFrameCount; }
 
         public void SetStateName(string t_name)
         {
+            //long position = (long)Marshal.OffsetOf(typeof(MInterface), "StateName");
+            //byte[] data = new byte[sizeof(char) * 32];
+            //
+            //IntPtr p = Marshal.StringToHGlobalAuto(t_name);
+            //Marshal.Copy(p, data, 0, data.Length);
+            //
+            //m_accessor.WriteArray<byte>(position, data, 0, data.Length);
+
             MInterface mi = ReadStructFromMemory();
             mi.StateName = t_name;
             WriteStructToMemory(mi);
@@ -148,11 +139,10 @@ namespace Dolphin_TAStudio
 
         public GCController GetInputs()
         {
-            MInterface mi = ReadStructFromMemory();
             int size = Marshal.SizeOf(typeof(byte)) * 8;
             IntPtr p = Marshal.AllocHGlobal(size);
 
-            Marshal.Copy(mi.ReadOnlyControllerInput, 0, p, size);
+            Marshal.Copy(m_mInterface.ReadOnlyControllerInput, 0, p, size);
 
             return (GCController)Marshal.PtrToStructure(p, typeof(GCController));
         }
@@ -167,65 +157,6 @@ namespace Dolphin_TAStudio
             Marshal.StructureToPtr(t_gcCont, p, false);
             Marshal.Copy(p, data, 0, data.Length);
             m_accessor.WriteArray<byte>(position, data, 0, data.Length);
-        }
-
-        public string GetInputsAsString()
-        {
-            GCController gc = GetInputs();
-            string inputs = "";
-
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_A) != 0)
-            {
-                inputs += "A ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_B) != 0)
-            {
-                inputs += "B ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_X) != 0)
-            {
-                inputs += "X ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_Y) != 0)
-            {
-                inputs += "Y ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_START) != 0)
-            {
-                inputs += "START ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_TRIGGER_L) != 0)
-            {
-                inputs += "L ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_TRIGGER_R) != 0)
-            {
-                inputs += "R ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_TRIGGER_Z) != 0)
-            {
-                inputs += "Z ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_DOWN) != 0)
-            {
-                inputs += "DOWN ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_LEFT) != 0)
-            {
-                inputs += "LEFT ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_RIGHT) != 0)
-            {
-                inputs += "RIGHT ";
-            }
-            if ((gc.button & (ushort)PadButton.PAD_BUTTON_UP) != 0)
-            {
-                inputs += "UP ";
-            }
-
-            inputs += "ANA: " + gc.stickX.ToString() + ", " + gc.stickY.ToString();
-
-            return inputs;
         }
 
         private MInterface ReadStructFromMemory()
@@ -248,6 +179,12 @@ namespace Dolphin_TAStudio
             Marshal.StructureToPtr(t_mInterface, p, false);
             Marshal.Copy(p, data, 0, data.Length);
             m_accessor.WriteArray<byte>(0, data, 0, data.Length);
+        }
+
+        private void WriteByteToMemory(string t_member, byte t_value)
+        {
+            long position = (long)Marshal.OffsetOf(typeof(MInterface), t_member);
+            m_accessor.Write(position, t_value);
         }
     }
 }
