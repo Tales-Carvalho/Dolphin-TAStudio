@@ -1,10 +1,7 @@
 ﻿/* TODO:
- * Change title on save, save as, and open
- *      Untitles on new
- * implement save/open
- * implement save before new/close
  * On table modification, clear and re-set the queue
  * In order to clear queue on table modification or savestate load, clear InputsInQueue in Dolphin code
+ * Implement keyboard shortcuts
 */
 
 using System;
@@ -34,6 +31,7 @@ namespace Dolphin_TAStudio
                 if (this._changed)
                 {
                     saveToolStripMenuItem.Enabled = true;
+                    if (this.Text.IndexOf("*") == -1) { this.Text = this.Text.Insert(this.Text.IndexOf("-") + 2, "*"); }
                 }
                 else
                 {
@@ -121,7 +119,7 @@ namespace Dolphin_TAStudio
         private void InputView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             inputView.Rows[e.RowIndex].Selected = true;
-            cutCtrlXToolStripMenuItem.Enabled = true;
+            cutToolStripMenuItem.Enabled = true;
             copyToolStripMenuItem.Enabled = true;
         }
         #endregion
@@ -147,6 +145,12 @@ namespace Dolphin_TAStudio
                 }
                 //newRow.ItemArray = [lastIndex + 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
                 //table.Rows.InsertAt(, lastIndex + 1);
+            }
+            else if (e.Control)
+            {
+                if (e.KeyCode == Keys.O) { OpenToolStripMenuItem_Click(sender, e); }
+                else if (e.KeyCode == Keys.S) { SaveToolStripMenuItem_Click(sender, e); }
+                else if (e.KeyCode == Keys.N) { NewToolStripMenuItem_Click(sender, e); }
             }
         }
         private void InputView_MouseClick(object sender, MouseEventArgs e)
@@ -255,7 +259,7 @@ namespace Dolphin_TAStudio
         #region Menu buttons
         private void DisableMenuButtons()
         {
-            cutCtrlXToolStripMenuItem.Enabled = false;
+            cutToolStripMenuItem.Enabled = false;
             copyToolStripMenuItem.Enabled = false;
             pasteToolStripMenuItem.Enabled = false;
             saveToolStripMenuItem.Enabled = false;
@@ -267,9 +271,11 @@ namespace Dolphin_TAStudio
             insertFrameToolStripMenuItem.Enabled = false;
             insertFramesToolStripMenuItem.Enabled = false;
         }
-        private void NewCtrlNToolStripMenuItem_Click(object sender, EventArgs e)
+        private void NewToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // TODO: Save before quitting an open table
+            ClearDataTable();
+            // Check to see if the table was cleared. If not, then this means that we did not save changes and should avoid generating a new table
+            if (table.Rows.Count > 0) { return; }
 
             this.Text = "Dolphin TAStudio - Untitled";
             // Disable menu buttons
@@ -309,7 +315,6 @@ namespace Dolphin_TAStudio
             if (save.FileName == "") return;
 
             Save_Data(save.FileName);
-            this.Text = "Dolphin TAStudio - " + Path.GetFileName(save.FileName);
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -343,6 +348,7 @@ namespace Dolphin_TAStudio
         private void CloseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ClearDataTable();
+            if (_changed) { return; } // If the file was not saved, do not close the table
             dmi.DeactivateInputs();
             this.Text = "Dolphin TAStudio";
         }
@@ -353,13 +359,13 @@ namespace Dolphin_TAStudio
             pasteToolStripMenuItem.Enabled = true;
         }
 
-        private void CutCtrlXToolStripMenuItem_Click(object sender, EventArgs e)
+        private void CutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Cut_Data(sender, e);
             pasteToolStripMenuItem.Enabled = true;
         }
 
-        private void PasteCtrlVToolStripMenuItem_Click(object sender, EventArgs e)
+        private void PasteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Paste_Data(sender, e);
         }
@@ -372,11 +378,15 @@ namespace Dolphin_TAStudio
         {
             string data = "";
 
-            using (FileStream fileStream = File.Open(fileLocation, FileMode.Open))
+            try
             {
-                fileStream.SetLength(0);
-                fileStream.Close();
+                using (FileStream fileStream = File.Open(fileLocation, FileMode.Open))
+                {
+                    fileStream.SetLength(0);
+                    fileStream.Close();
+                }
             }
+            catch (FileNotFoundException) { ; }
 
             using (StreamWriter file = new StreamWriter(fileLocation))
             {
@@ -400,6 +410,7 @@ namespace Dolphin_TAStudio
             }
 
             fileName = Path.GetFileName(fileLocation);
+            this.Text = "Dolphin TAStudio - " + Path.GetFileName(fileName);
             Changed = false;
         }
 
@@ -489,15 +500,26 @@ namespace Dolphin_TAStudio
         {
             if (Changed)
             {
-                DialogResult result = MessageBox.Show("Are you sure you want to clear the table?", "Close", MessageBoxButtons.YesNo);
-                if (result == DialogResult.No) return;
+                DialogResult result = MessageBox.Show("Do you want to save before closing?", "Close Table", MessageBoxButtons.YesNoCancel);
+                if (result == DialogResult.Cancel) { return; }
+                if (result == DialogResult.Yes)
+                {
+                    if (fileName == "")
+                    {
+                        SaveAsToolStripMenuItem_Click(null, null);
+                        if (fileName == "") { return; } // If file is not saved, do not clear the table
+                    }
+                    else { SaveToolStripMenuItem_Click(null, null); }
+
+                }
             }
             table.Columns.Clear();
             table.Clear();
             DisableMenuButtons();
-            fileName = null;
+            fileName = "";
             Changed = false;
             dmi.DeactivateInputs();
+            this.Text = "Dolphin TAStudio";
         }
 
         private string Parse_Data(DataRow row)
