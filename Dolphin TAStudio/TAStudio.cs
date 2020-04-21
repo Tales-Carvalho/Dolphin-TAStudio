@@ -68,18 +68,27 @@ namespace Dolphin_TAStudio
             ("cY", "Byte")
         };
 
-        DolphinMemoryInterface dmi = new DolphinMemoryInterface();
+        DolphinMemoryInterface dmi;
         DolphinMemoryInterface.GCController gcCont = new DolphinMemoryInterface.GCController();
 
         public TAStudio()
         {
             InitializeComponent();
             DisableMenuButtons();
+            
+            try
+            {
+                dmi = new DolphinMemoryInterface();
 
-            dmi.MoviePlaybackStateChanged += checkReadOnly;
-            dmi.InputFrameCountChanged += OnFrameUpdate;
+                dmi.MoviePlaybackStateChanged += checkReadOnly;
+                dmi.InputFrameCountChanged += OnFrameUpdate;
 
-            checkReadOnly(null, null);
+                checkReadOnly(null, null);
+            }
+            catch (Exception e)
+            {
+                // Show error message and activate a button to retry connection - similar to how it's done in DolphinMemoryEngine
+            }
         }
 
         #region Table format-related functions
