@@ -688,45 +688,35 @@ namespace Dolphin_TAStudio
 
         
         // Turn data at frame into gcCont inputs
-        private void parseTableInputs(DataGridViewRow frameData, int frame)
+        private DolphinMemoryInterface.GCController parseTableInputs(DataGridViewRow frameData, int frame)
         {
-            ushort buttonData = 0;
-            byte stickX = 0;
-            byte stickY = 0;
-            byte substickX = 0;
-            byte substickY = 0;
-            byte triggerLeft = 0;
-            byte triggerRight = 0;
+            DolphinMemoryInterface.GCController gcInput = new DolphinMemoryInterface.GCController();
+            gcInput.button = 0;
+
             for (int i = 0; i < frameData.Cells.Count; i++)
             {
                 string colName = columnNames[i].Item1;
-                if (colName == "A") { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_A; }
-                else if (colName == "B" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_B; }
-                else if (colName == "X" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
-                else if (colName == "Y" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_Y; }
-                else if (colName == "L" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_L; }
-                else if (colName == "R" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_R; }
-                else if (colName == "Z" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
-                else if (colName == "S" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_START; }
-                else if (colName == "dU" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_UP; }
-                else if (colName == "dD" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_DOWN; }
-                else if (colName == "dL" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_LEFT; }
-                else if (colName == "dR" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_RIGHT; }
-                else if (colName == "aX") { stickX = (byte)frameData.Cells[i].Value; }
-                else if (colName == "aY") { stickY = (byte)frameData.Cells[i].Value; }
-                else if (colName == "cX") { substickX = (byte)frameData.Cells[i].Value; }
-                else if (colName == "cY") { substickY = (byte)frameData.Cells[i].Value; }
-                else if (colName == "La") { triggerLeft = (byte)frameData.Cells[i].Value; }
-                else if (colName == "Ra") { triggerRight = (byte)frameData.Cells[i].Value; }
+                if (colName == "A") { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_A; }
+                else if (colName == "B" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_B; }
+                else if (colName == "X" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
+                else if (colName == "Y" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_Y; }
+                else if (colName == "L" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_L; }
+                else if (colName == "R" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_R; }
+                else if (colName == "Z" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
+                else if (colName == "S" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_START; }
+                else if (colName == "dU" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_UP; }
+                else if (colName == "dD" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_DOWN; }
+                else if (colName == "dL" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_LEFT; }
+                else if (colName == "dR" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_RIGHT; }
+                else if (colName == "aX") { gcInput.stickX = (byte)frameData.Cells[i].Value; }
+                else if (colName == "aY") { gcInput.stickY = (byte)frameData.Cells[i].Value; }
+                else if (colName == "cX") { gcInput.substickX = (byte)frameData.Cells[i].Value; }
+                else if (colName == "cY") { gcInput.substickY = (byte)frameData.Cells[i].Value; }
+                else if (colName == "La") { gcInput.triggerLeft = (byte)frameData.Cells[i].Value; }
+                else if (colName == "Ra") { gcInput.triggerRight = (byte)frameData.Cells[i].Value; }
             }
 
-            gcCont.button = buttonData;
-            gcCont.stickX = stickX;
-            gcCont.stickY = stickY;
-            gcCont.substickX = substickX;
-            gcCont.substickY = substickY;
-            gcCont.triggerLeft = triggerLeft;
-            gcCont.triggerRight = triggerRight;
+            return gcInput;
         }
 
         // Asynchronous functions to constantly check Dolphin-related events
