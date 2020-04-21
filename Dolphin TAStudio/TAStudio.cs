@@ -1,9 +1,8 @@
 ﻿/* TODO:
  * Change title on save, save as, and open
- *      Remove title on close
  *      Untitles on new
  * implement save/open
- * implement save before new
+ * implement save before new/close
 */
 
 using System;
@@ -42,6 +41,7 @@ namespace Dolphin_TAStudio
         }
         private bool _changed = false;
         private bool dataCopiedToClipboard = false;
+        private bool sendInputsToDolphin = false; // Determines whether or not to send inputs to the emulator, based on whether or not it is in read-only mode
 
         // Represent columns in a list of tuples, to allow for easy modification should these column names change
         private readonly List<(string, string)> columnNames = new List<(string, string)>()
@@ -68,12 +68,15 @@ namespace Dolphin_TAStudio
             ("cY", "Int")
         };
 
-        DolphinMemoryInterface interface1 = new DolphinMemoryInterface();
+        DolphinMemoryInterface dmi = new DolphinMemoryInterface();
+        DolphinMemoryInterface.GCController gcCont = new DolphinMemoryInterface.GCController();
 
         public TAStudio()
         {
             InitializeComponent();
             DisableMenuButtons();
+
+            dmi.MoviePlaybackStateChanged += checkReadOnly;
         }
 
         #region Table format-related functions
@@ -326,6 +329,7 @@ namespace Dolphin_TAStudio
         private void CloseToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ClearDataTable();
+            dmi.DeactivateInputs();
             this.Text = "Dolphin TAStudio";
         }
 
@@ -456,13 +460,11 @@ namespace Dolphin_TAStudio
                 }
 
                 inputView.DataSource = table;
-
-                // Resize column widths
-                ResizeInputViewColumns();
-
-                // Resync frame column
-                Resync_FrameCount(0);
             }
+
+            ResizeInputViewColumns();
+            Resync_FrameCount(0);
+            dmi.ActivateInputs();
 
             // Enable close and save as menu buttons
             closeToolStripMenuItem.Enabled = true;
@@ -483,6 +485,7 @@ namespace Dolphin_TAStudio
             DisableMenuButtons();
             fileName = null;
             Changed = false;
+            dmi.DeactivateInputs();
         }
 
         private string Parse_Data(DataRow row)
@@ -630,32 +633,48 @@ namespace Dolphin_TAStudio
 
         #endregion
 
-        #region Playback Controls
+        #region Dolphin-related Functions
+
+        private void checkReadOnly(object sender, EventArgs e)
+        {
+            if (dmi.IsMoviePlayingBack())
+            {
+                if (recordDolphinInputs.Checked == false)
+                {
+                    readOnlyWarning.Visible = true;
+                }
+                sendInputsToDolphin = false;
+            }
+            else
+            {
+                sendInputsToDolphin = true;
+                readOnlyWarning.Visible = true;
+            }
+        }
+        
         private void FrameAdvance_Click(object sender, EventArgs e)
         {
-            interface1.FrameAdvance();
+            dmi.FrameAdvance();
         }
-
-        #endregion
 
         private void Play_Click(object sender, EventArgs e)
         {
-            interface1.PlayEmulation();
+            dmi.PlayEmulation();
         }
 
         private void Pause_Click(object sender, EventArgs e)
         {
-            interface1.PauseEmulation();
+            dmi.PauseEmulation();
         }
 
         private void Savestate_Click(object sender, EventArgs e)
         {
-            interface1.SaveState();
+            dmi.SaveState();
         }
 
         private void LoadState_Click(object sender, EventArgs e)
         {
-            interface1.LoadState();
+            dmi.LoadState();
         }
 
         private void SetStateName_Click(object sender, EventArgs e)
@@ -663,7 +682,54 @@ namespace Dolphin_TAStudio
             string name = Interaction.InputBox("Enter a savestate name", "Set Savestate Name", "", 0, 0);
             //if ((name.Substring(name.Length - 5)) != ".dtm") name += ".dtm";
                     
-            interface1.SetStateName(name);
+            dmi.SetStateName(name);
         }
+
+
+        
+        // Turn data at frame into gcCont inputs
+        private void parseTableInputs(DataGridViewRow frameData, int frame)
+        {
+            ushort buttonData = 0;
+            byte stickX = 0;
+            byte stickY = 0;
+            byte substickX = 0;
+            byte substickY = 0;
+            byte triggerLeft = 0;
+            byte triggerRight = 0;
+            for (int i = 0; i < frameData.Cells.Count; i++)
+            {
+                string colName = columnNames[i].Item1;
+                if (colName == "A") { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_A; }
+                else if (colName == "B" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_B; }
+                else if (colName == "X" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
+                else if (colName == "Y" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_Y; }
+                else if (colName == "L" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_L; }
+                else if (colName == "R" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_R; }
+                else if (colName == "Z" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
+                else if (colName == "S" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_START; }
+                else if (colName == "dU" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_UP; }
+                else if (colName == "dD" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_DOWN; }
+                else if (colName == "dL" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_LEFT; }
+                else if (colName == "dR" && (bool)(frameData.Cells[i].Value)) { buttonData |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_RIGHT; }
+                else if (colName == "aX") { stickX = (byte)frameData.Cells[i].Value; }
+                else if (colName == "aY") { stickY = (byte)frameData.Cells[i].Value; }
+                else if (colName == "cX") { substickX = (byte)frameData.Cells[i].Value; }
+                else if (colName == "cY") { substickY = (byte)frameData.Cells[i].Value; }
+                else if (colName == "La") { triggerLeft = (byte)frameData.Cells[i].Value; }
+                else if (colName == "Ra") { triggerRight = (byte)frameData.Cells[i].Value; }
+            }
+
+            gcCont.button = buttonData;
+            gcCont.stickX = stickX;
+            gcCont.stickY = stickY;
+            gcCont.substickX = substickX;
+            gcCont.substickY = substickY;
+            gcCont.triggerLeft = triggerLeft;
+            gcCont.triggerRight = triggerRight;
+        }
+
+        // Asynchronous functions to constantly check Dolphin-related events
+        #endregion
     }
 }

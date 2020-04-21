@@ -46,12 +46,14 @@
             this.redoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inputView = new System.Windows.Forms.DataGridView();
             this.playbackBox = new System.Windows.Forms.GroupBox();
+            this.SetStateName = new System.Windows.Forms.Button();
+            this.LoadState = new System.Windows.Forms.Button();
+            this.Savestate = new System.Windows.Forms.Button();
+            this.Pause = new System.Windows.Forms.Button();
             this.Play = new System.Windows.Forms.Button();
             this.FrameAdvance = new System.Windows.Forms.Button();
-            this.Pause = new System.Windows.Forms.Button();
-            this.Savestate = new System.Windows.Forms.Button();
-            this.LoadState = new System.Windows.Forms.Button();
-            this.SetStateName = new System.Windows.Forms.Button();
+            this.readOnlyWarning = new System.Windows.Forms.TextBox();
+            this.recordDolphinInputs = new System.Windows.Forms.CheckBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputView)).BeginInit();
             this.playbackBox.SuspendLayout();
@@ -213,6 +215,46 @@
             this.playbackBox.TabStop = false;
             this.playbackBox.Text = "Playback";
             // 
+            // SetStateName
+            // 
+            this.SetStateName.Location = new System.Drawing.Point(108, 18);
+            this.SetStateName.Name = "SetStateName";
+            this.SetStateName.Size = new System.Drawing.Size(92, 23);
+            this.SetStateName.TabIndex = 5;
+            this.SetStateName.Text = "Set State Name";
+            this.SetStateName.UseVisualStyleBackColor = true;
+            this.SetStateName.Click += new System.EventHandler(this.SetStateName_Click);
+            // 
+            // LoadState
+            // 
+            this.LoadState.Location = new System.Drawing.Point(107, 77);
+            this.LoadState.Name = "LoadState";
+            this.LoadState.Size = new System.Drawing.Size(93, 23);
+            this.LoadState.TabIndex = 4;
+            this.LoadState.Text = "Load State";
+            this.LoadState.UseVisualStyleBackColor = true;
+            this.LoadState.Click += new System.EventHandler(this.LoadState_Click);
+            // 
+            // Savestate
+            // 
+            this.Savestate.Location = new System.Drawing.Point(107, 48);
+            this.Savestate.Name = "Savestate";
+            this.Savestate.Size = new System.Drawing.Size(93, 23);
+            this.Savestate.TabIndex = 3;
+            this.Savestate.Text = "Savestate";
+            this.Savestate.UseVisualStyleBackColor = true;
+            this.Savestate.Click += new System.EventHandler(this.Savestate_Click);
+            // 
+            // Pause
+            // 
+            this.Pause.Location = new System.Drawing.Point(7, 77);
+            this.Pause.Name = "Pause";
+            this.Pause.Size = new System.Drawing.Size(94, 23);
+            this.Pause.TabIndex = 2;
+            this.Pause.Text = "Pause";
+            this.Pause.UseVisualStyleBackColor = true;
+            this.Pause.Click += new System.EventHandler(this.Pause_Click);
+            // 
             // Play
             // 
             this.Play.Location = new System.Drawing.Point(6, 48);
@@ -233,51 +275,34 @@
             this.FrameAdvance.UseVisualStyleBackColor = true;
             this.FrameAdvance.Click += new System.EventHandler(this.FrameAdvance_Click);
             // 
-            // Pause
+            // readOnlyWarning
             // 
-            this.Pause.Location = new System.Drawing.Point(7, 77);
-            this.Pause.Name = "Pause";
-            this.Pause.Size = new System.Drawing.Size(94, 23);
-            this.Pause.TabIndex = 2;
-            this.Pause.Text = "Pause";
-            this.Pause.UseVisualStyleBackColor = true;
-            this.Pause.Click += new System.EventHandler(this.Pause_Click);
+            this.readOnlyWarning.Location = new System.Drawing.Point(651, 167);
+            this.readOnlyWarning.MaximumSize = new System.Drawing.Size(206, 200);
+            this.readOnlyWarning.Multiline = true;
+            this.readOnlyWarning.Name = "readOnlyWarning";
+            this.readOnlyWarning.ReadOnly = true;
+            this.readOnlyWarning.Size = new System.Drawing.Size(206, 35);
+            this.readOnlyWarning.TabIndex = 3;
+            this.readOnlyWarning.Text = "Warning! Dolphin is in read-only mode,\r\nand inputs here will not be processed.";
             // 
-            // Savestate
+            // recordDolphinInputs
             // 
-            this.Savestate.Location = new System.Drawing.Point(107, 48);
-            this.Savestate.Name = "Savestate";
-            this.Savestate.Size = new System.Drawing.Size(93, 23);
-            this.Savestate.TabIndex = 3;
-            this.Savestate.Text = "Savestate";
-            this.Savestate.UseVisualStyleBackColor = true;
-            this.Savestate.Click += new System.EventHandler(this.Savestate_Click);
-            // 
-            // LoadState
-            // 
-            this.LoadState.Location = new System.Drawing.Point(107, 77);
-            this.LoadState.Name = "LoadState";
-            this.LoadState.Size = new System.Drawing.Size(93, 23);
-            this.LoadState.TabIndex = 4;
-            this.LoadState.Text = "Load State";
-            this.LoadState.UseVisualStyleBackColor = true;
-            this.LoadState.Click += new System.EventHandler(this.LoadState_Click);
-            // 
-            // SetStateName
-            // 
-            this.SetStateName.Location = new System.Drawing.Point(108, 18);
-            this.SetStateName.Name = "SetStateName";
-            this.SetStateName.Size = new System.Drawing.Size(92, 23);
-            this.SetStateName.TabIndex = 5;
-            this.SetStateName.Text = "Set State Name";
-            this.SetStateName.UseVisualStyleBackColor = true;
-            this.SetStateName.Click += new System.EventHandler(this.SetStateName_Click);
+            this.recordDolphinInputs.AutoSize = true;
+            this.recordDolphinInputs.Location = new System.Drawing.Point(652, 144);
+            this.recordDolphinInputs.Name = "recordDolphinInputs";
+            this.recordDolphinInputs.Size = new System.Drawing.Size(155, 17);
+            this.recordDolphinInputs.TabIndex = 4;
+            this.recordDolphinInputs.Text = "Record Inputs from Dolphin";
+            this.recordDolphinInputs.UseVisualStyleBackColor = true;
             // 
             // TAStudio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(869, 602);
+            this.Controls.Add(this.recordDolphinInputs);
+            this.Controls.Add(this.readOnlyWarning);
             this.Controls.Add(this.playbackBox);
             this.Controls.Add(this.inputView);
             this.Controls.Add(this.menuStrip1);
@@ -320,6 +345,8 @@
         private System.Windows.Forms.Button Savestate;
         private System.Windows.Forms.Button LoadState;
         private System.Windows.Forms.Button SetStateName;
+        private System.Windows.Forms.TextBox readOnlyWarning;
+        private System.Windows.Forms.CheckBox recordDolphinInputs;
     }
 }
 

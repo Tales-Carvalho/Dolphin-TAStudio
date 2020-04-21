@@ -14,7 +14,7 @@ namespace Dolphin_TAStudio
             PAD_BUTTON_RIGHT = 0x0002,
             PAD_BUTTON_DOWN = 0x0004,
             PAD_BUTTON_UP = 0x0008,
-            PAD_TRIGGER_Z = 0x0010,
+            PAD_BUTTON_Z = 0x0010,
             PAD_TRIGGER_R = 0x0020,
             PAD_TRIGGER_L = 0x0040,
             PAD_BUTTON_A = 0x0100,
