@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
-using System.Threading;
+using System.Windows.Forms;
 
 namespace Dolphin_TAStudio
 {
@@ -74,6 +74,8 @@ namespace Dolphin_TAStudio
         private MemoryMappedViewAccessor m_accessor;
         private MInterface m_mInterface;
 
+        private Timer m_timer;
+
         private Queue<GCController> m_inputsToSend;
 
         private ulong _frameCount;
@@ -89,11 +91,14 @@ namespace Dolphin_TAStudio
             _frameCount = m_mInterface.FrameCount;
             _inputFrameCount = m_mInterface.InputFrameCount;
             _moviePlayingBack = m_mInterface.IsMoviePlayingBack;
-            
-            new Timer(Update, null, 0, 10);
+
+            m_timer = new Timer();
+            m_timer.Tick += new EventHandler(Update);
+            m_timer.Interval = 10; // 10ms of interval
+            m_timer.Start();
         }
 
-        public void Update(object stateInfo)
+        public void Update(object sender, EventArgs myEventArgs)
         {
             m_mInterface = ReadStructFromMemory();
             if (m_mInterface.FrameCount != _frameCount && FrameCountChanged != null)
