@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -44,8 +45,8 @@ namespace Dolphin_TAStudio
             public byte SaveState; // If 1, save StateName.sav
             public byte IsMoviePlayingBack; // If 1, Movie is playing back
             public byte ReadOnly; // ReadOnly = 1; ReadWrite = 2
-            public byte InputActive; // If 1, Dolphin reads inputs from ControllerInput
-            public byte NotImplemented; // Extra byte to align next variables in memory
+            public byte InputActive; // If 1, Dolphin reads inputs from ControllerInputQueue
+            public byte InputsInQueue; // Extra byte to align next variables in memory
 
             [MarshalAs(UnmanagedType.U8)]
             public ulong FrameCount;
@@ -53,8 +54,8 @@ namespace Dolphin_TAStudio
             [MarshalAs(UnmanagedType.U8)]
             public ulong InputFrameCount;
 
-            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-            public byte[] ControllerInput; // Array used to send inputs to Dolphin
+            [MarshalAs(UnmanagedType.ByValArray, SizeConst = 80)]
+            public byte[] ControllerInputQueue; // Array used to send inputs to Dolphin
 
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
             public byte[] ReadOnlyControllerInput; // Array used to read inputs from Dolphin
@@ -73,6 +74,8 @@ namespace Dolphin_TAStudio
         private MemoryMappedViewAccessor m_accessor;
         private MInterface m_mInterface;
 
+        private Queue<GCController> m_inputsToSend;
+
         private ulong _frameCount;
         private ulong _inputFrameCount;
         private byte _moviePlayingBack;
@@ -82,6 +85,7 @@ namespace Dolphin_TAStudio
             m_file = MemoryMappedFile.OpenExisting(MEMORY_MAP_OBJECT);
             m_accessor = m_file.CreateViewAccessor(0, 256, MemoryMappedFileAccess.ReadWrite);
             m_mInterface = ReadStructFromMemory();
+            m_inputsToSend = new Queue<GCController>();
             _frameCount = m_mInterface.FrameCount;
             _inputFrameCount = m_mInterface.InputFrameCount;
             _moviePlayingBack = m_mInterface.IsMoviePlayingBack;
@@ -107,6 +111,8 @@ namespace Dolphin_TAStudio
                 MoviePlaybackStateChanged(this, EventArgs.Empty);
             }
             _moviePlayingBack = m_mInterface.IsMoviePlayingBack;
+
+            SendInputsToDolphin();
         }
 
         public void FrameAdvance() { WriteByteToMemory("FrameAdvance", 1); }
@@ -148,16 +154,40 @@ namespace Dolphin_TAStudio
             return (GCController)Marshal.PtrToStructure(p, typeof(GCController));
         }
 
-        public void SendInputs(GCController t_gcCont)
+        public void AddInputInQueue(GCController t_gcCont)
         {
-            long position = (long)Marshal.OffsetOf(typeof(MInterface), "ControllerInput");
-            int size = Marshal.SizeOf(typeof(byte)) * 8;
-            byte[] data = new byte[size];
-            IntPtr p = Marshal.AllocHGlobal(size);
+            m_inputsToSend.Enqueue(t_gcCont);
+        }
 
-            Marshal.StructureToPtr(t_gcCont, p, false);
-            Marshal.Copy(p, data, 0, data.Length);
+        private void SendInputsToDolphin()
+        {
+            int countInputsToSend = m_inputsToSend.Count;
+
+            if (countInputsToSend > 10 - m_mInterface.InputsInQueue)
+            {
+                countInputsToSend = 10 - m_mInterface.InputsInQueue;
+            }
+
+            if (countInputsToSend == 0)
+            {
+                return;
+            }
+
+            int size = Marshal.SizeOf(typeof(byte)) * 8 * countInputsToSend;
+            byte[] data = new byte[size];
+
+            for (int i = 0; i < countInputsToSend; i++)
+            {
+                GCController input = m_inputsToSend.Dequeue();
+                IntPtr p = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(byte)) * 8);
+                Marshal.StructureToPtr(input, p, false);
+                Marshal.Copy(p, data, i * 8, Marshal.SizeOf(typeof(byte)) * 8);
+            }
+
+            long position = (long)Marshal.OffsetOf(typeof(MInterface), "ControllerInputQueue") + m_mInterface.InputsInQueue * 8;
             m_accessor.WriteArray<byte>(position, data, 0, data.Length);
+
+            WriteByteToMemory("InputsInQueue", (byte)(m_mInterface.InputsInQueue + countInputsToSend));
         }
 
         private MInterface ReadStructFromMemory()
