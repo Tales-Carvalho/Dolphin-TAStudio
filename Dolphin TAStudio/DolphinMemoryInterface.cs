@@ -164,6 +164,11 @@ namespace Dolphin_TAStudio
             m_inputsToSend.Enqueue(t_gcCont);
         }
 
+        public void ClearQueue()
+        {
+            m_inputsToSend.Clear();
+        }
+
         private void SendInputsToDolphin()
         {
             int countInputsToSend = m_inputsToSend.Count;

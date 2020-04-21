@@ -3,6 +3,8 @@
  *      Untitles on new
  * implement save/open
  * implement save before new/close
+ * On table modification, clear and re-set the queue
+ * In order to clear queue on table modification or savestate load, clear InputsInQueue in Dolphin code
 */
 
 using System;
@@ -47,9 +49,9 @@ namespace Dolphin_TAStudio
         private readonly List<(string, string)> columnNames = new List<(string, string)>()
         {
             ("Save?", "Bool"),
-            ("Frame", "Int"),
-            ("aX", "Int"),
-            ("aY", "Int"),
+            ("Frame", "Byte"),
+            ("aX", "Byte"),
+            ("aY", "Byte"),
             ("A", "Bool"),
             ("B", "Bool"),
             ("X", "Bool"),
@@ -58,14 +60,14 @@ namespace Dolphin_TAStudio
             ("Z", "Bool"),
             ("L", "Bool"),
             ("R", "Bool"),
-            ("La", "Int"),
-            ("Ra", "Int"),
+            ("La", "Byte"),
+            ("Ra", "Byte"),
             ("dU", "Bool"),
             ("dD", "Bool"),
             ("dL", "Bool"),
             ("dR", "Bool"),
-            ("cX", "Int"),
-            ("cY", "Int")
+            ("cX", "Byte"),
+            ("cY", "Byte")
         };
 
         DolphinMemoryInterface dmi = new DolphinMemoryInterface();
@@ -77,6 +79,9 @@ namespace Dolphin_TAStudio
             DisableMenuButtons();
 
             dmi.MoviePlaybackStateChanged += checkReadOnly;
+            dmi.InputFrameCountChanged += OnFrameUpdate;
+
+            checkReadOnly(null, null);
         }
 
         #region Table format-related functions
@@ -85,7 +90,7 @@ namespace Dolphin_TAStudio
         {
             foreach ((string, string) column in columnNames)
             {
-                if (column.Item2 == "Int") table.Columns.Add(column.Item1, typeof(Int16));
+                if (column.Item2 == "Byte") table.Columns.Add(column.Item1, typeof(Byte));
                 else if (column.Item2 == "Bool") table.Columns.Add(column.Item1, typeof(bool));
             }
         }
@@ -207,7 +212,8 @@ namespace Dolphin_TAStudio
                 {
                     newRow[i] = table.Rows.Count + 1;
                 }
-                else if (table.Columns[i].DataType == System.Type.GetType("System.Int16")) newRow[i] = 128;
+                else if (table.Columns[i].ColumnName == "La" || table.Columns[i].ColumnName == "Ra") newRow[i] = 0;
+                else if (table.Columns[i].DataType == System.Type.GetType("System.Byte")) newRow[i] = 128;
             }
 
             return newRow;
@@ -219,7 +225,7 @@ namespace Dolphin_TAStudio
             for (int i = 0; i < inputView.Columns.Count; i++)
             {
                 // If the cell is an analog field and it was not modified, set it to default 128
-                if (table.Columns[i].DataType == System.Type.GetType("System.Int16") && inputView.Rows[inputView.Rows.Count - 1].Cells[i].Value == null && table.Columns[i].ColumnName != "Frame")
+                if (table.Columns[i].DataType == System.Type.GetType("System.Byte") && inputView.Rows[inputView.Rows.Count - 1].Cells[i].Value == null && table.Columns[i].ColumnName != "Frame")
                 {
                     inputView.Rows[inputView.Rows.Count - 1].Cells[i].Value = 128;
                 }
@@ -323,6 +329,14 @@ namespace Dolphin_TAStudio
                 ClearDataTable();
                 Open_Data(open.FileName);
                 this.Text = "Dolphin TAStudio - " + Path.GetFileName(open.FileName);
+
+                // Parse table data into gcCont objects
+                for (int i = 0; i < table.Rows.Count; i++)
+                {
+                    dmi.AddInputInQueue(parseTableInputs(inputView.Rows[i]));
+                    if (i == 0) { dmi.AddInputInQueue(parseTableInputs(inputView.Rows[i])); } // Resend the first frame so that it processes correctly
+
+                }
             }
         }
 
@@ -379,7 +393,6 @@ namespace Dolphin_TAStudio
                 {
                     DataRow row = table.Rows[i];
                     data = Parse_Data(row);
-                    MessageBox.Show(data);
                     data = data.Substring(0, data.Length - 1);
 
                     file.WriteLine(data);
@@ -420,21 +433,20 @@ namespace Dolphin_TAStudio
                 while (!reader.EndOfStream)
                 {
                     data = reader.ReadLine();
-                    MessageBox.Show(data);
                     DataRow newRow = table.NewRow();
 
                     string[] cellData = data.Split(',');
 
                     for (int i = 0; i < columnNames.Count; i++)
                     {
-                        if (columnNames[i].Item2 == "Int")
+                        if (columnNames[i].Item2 == "Byte")
                         {
                             // If the file's integer cell value is < 0 or > 255, then fix
-                            if (Convert.ToInt16(cellData[i]) < 0)
+                            if (Convert.ToByte(cellData[i]) < 0)
                             {
                                 newRow[table.Columns[i]] = 0;
                             }
-                            else if (Convert.ToInt16(cellData[i]) > 255)
+                            else if (Convert.ToByte(cellData[i]) > 255)
                             {
                                 newRow[table.Columns[i]] = 255;
                             }
@@ -495,9 +507,9 @@ namespace Dolphin_TAStudio
             {
                 object cell = row.ItemArray[j];
 
-                if (cell.GetType() == typeof(Int16))
+                if (cell.GetType() == typeof(Byte))
                 {
-                    parsedData = parsedData + ((Int16)cell).ToString() + ",";
+                    parsedData = parsedData + ((Byte)cell).ToString() + ",";
                 }
                 else if (cell.GetType() == typeof(DBNull))
                 {
@@ -648,7 +660,7 @@ namespace Dolphin_TAStudio
             else
             {
                 sendInputsToDolphin = true;
-                readOnlyWarning.Visible = true;
+                readOnlyWarning.Visible = false;
             }
         }
         
@@ -681,14 +693,12 @@ namespace Dolphin_TAStudio
         {
             string name = Interaction.InputBox("Enter a savestate name", "Set Savestate Name", "", 0, 0);
             //if ((name.Substring(name.Length - 5)) != ".dtm") name += ".dtm";
-                    
+
             dmi.SetStateName(name);
         }
-
-
         
         // Turn data at frame into gcCont inputs
-        private DolphinMemoryInterface.GCController parseTableInputs(DataGridViewRow frameData, int frame)
+        private DolphinMemoryInterface.GCController parseTableInputs(DataGridViewRow frameData)
         {
             DolphinMemoryInterface.GCController gcInput = new DolphinMemoryInterface.GCController();
             gcInput.button = 0;
@@ -696,13 +706,13 @@ namespace Dolphin_TAStudio
             for (int i = 0; i < frameData.Cells.Count; i++)
             {
                 string colName = columnNames[i].Item1;
-                if (colName == "A") { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_A; }
+                if (colName == "A" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_A; }
                 else if (colName == "B" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_B; }
                 else if (colName == "X" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
                 else if (colName == "Y" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_Y; }
                 else if (colName == "L" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_L; }
                 else if (colName == "R" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_TRIGGER_R; }
-                else if (colName == "Z" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_X; }
+                else if (colName == "Z" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_Z; }
                 else if (colName == "S" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_START; }
                 else if (colName == "dU" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_UP; }
                 else if (colName == "dD" && (bool)(frameData.Cells[i].Value)) { gcInput.button |= (ushort)DolphinMemoryInterface.PadButton.PAD_BUTTON_DOWN; }
@@ -719,7 +729,10 @@ namespace Dolphin_TAStudio
             return gcInput;
         }
 
-        // Asynchronous functions to constantly check Dolphin-related events
+        private void OnFrameUpdate(object sender, EventArgs e)
+        {
+
+        }
         #endregion
     }
 }
