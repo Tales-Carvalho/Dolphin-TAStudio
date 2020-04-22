@@ -54,6 +54,10 @@
             this.FrameAdvance = new System.Windows.Forms.Button();
             this.readOnlyWarning = new System.Windows.Forms.TextBox();
             this.recordDolphinInputs = new System.Windows.Forms.CheckBox();
+            this.DolphinNotDetected = new System.Windows.Forms.TextBox();
+            this.DolphinRetry = new System.Windows.Forms.Button();
+            this.Connected = new System.Windows.Forms.TextBox();
+            this.Disconnect = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.inputView)).BeginInit();
             this.playbackBox.SuspendLayout();
@@ -135,58 +139,60 @@
             // cutToolStripMenuItem
             // 
             this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
-            this.cutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.cutToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.cutToolStripMenuItem.Text = "Cut (Ctrl + X)";
             this.cutToolStripMenuItem.Click += new System.EventHandler(this.CutToolStripMenuItem_Click);
             // 
             // copyToolStripMenuItem
             // 
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.copyToolStripMenuItem.Text = "Copy (Ctrl + C)";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.CopyToolStripMenuItem_Click);
             // 
             // pasteToolStripMenuItem
             // 
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.pasteToolStripMenuItem.Text = "Paste (Ctrl + V)";
             this.pasteToolStripMenuItem.Click += new System.EventHandler(this.PasteToolStripMenuItem_Click);
             // 
             // insertFrameToolStripMenuItem
             // 
             this.insertFrameToolStripMenuItem.Name = "insertFrameToolStripMenuItem";
-            this.insertFrameToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.insertFrameToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.insertFrameToolStripMenuItem.Text = "Insert Frame";
             // 
             // insertFramesToolStripMenuItem
             // 
             this.insertFramesToolStripMenuItem.Name = "insertFramesToolStripMenuItem";
-            this.insertFramesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.insertFramesToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.insertFramesToolStripMenuItem.Text = "Insert Frames";
             // 
             // pasteInsertToolStripMenuItem
             // 
             this.pasteInsertToolStripMenuItem.Name = "pasteInsertToolStripMenuItem";
-            this.pasteInsertToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pasteInsertToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.pasteInsertToolStripMenuItem.Text = "Paste Insert";
             // 
             // undoToolStripMenuItem
             // 
             this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
-            this.undoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.undoToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.undoToolStripMenuItem.Text = "Undo (Ctrl + Z)";
             // 
             // redoToolStripMenuItem
             // 
             this.redoToolStripMenuItem.Name = "redoToolStripMenuItem";
-            this.redoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.redoToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.redoToolStripMenuItem.Text = "Redo (Ctrl + Y)";
             // 
             // inputView
             // 
             this.inputView.AllowUserToResizeColumns = false;
             this.inputView.AllowUserToResizeRows = false;
+            this.inputView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.inputView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.inputView.Location = new System.Drawing.Point(12, 27);
             this.inputView.Name = "inputView";
@@ -241,7 +247,7 @@
             this.Savestate.Name = "Savestate";
             this.Savestate.Size = new System.Drawing.Size(93, 23);
             this.Savestate.TabIndex = 3;
-            this.Savestate.Text = "Savestate";
+            this.Savestate.Text = "Save State";
             this.Savestate.UseVisualStyleBackColor = true;
             this.Savestate.Click += new System.EventHandler(this.Savestate_Click);
             // 
@@ -277,6 +283,8 @@
             // 
             // readOnlyWarning
             // 
+            this.readOnlyWarning.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.readOnlyWarning.Enabled = false;
             this.readOnlyWarning.Location = new System.Drawing.Point(651, 167);
             this.readOnlyWarning.MaximumSize = new System.Drawing.Size(206, 200);
             this.readOnlyWarning.Multiline = true;
@@ -285,6 +293,7 @@
             this.readOnlyWarning.Size = new System.Drawing.Size(206, 35);
             this.readOnlyWarning.TabIndex = 3;
             this.readOnlyWarning.Text = "Warning! Dolphin is in read-only mode,\r\nand inputs here will not be processed.";
+            this.readOnlyWarning.Visible = false;
             // 
             // recordDolphinInputs
             // 
@@ -296,17 +305,71 @@
             this.recordDolphinInputs.Text = "Record Inputs from Dolphin";
             this.recordDolphinInputs.UseVisualStyleBackColor = true;
             // 
+            // DolphinNotDetected
+            // 
+            this.DolphinNotDetected.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.DolphinNotDetected.Enabled = false;
+            this.DolphinNotDetected.Location = new System.Drawing.Point(651, 548);
+            this.DolphinNotDetected.MaximumSize = new System.Drawing.Size(206, 200);
+            this.DolphinNotDetected.Name = "DolphinNotDetected";
+            this.DolphinNotDetected.ReadOnly = true;
+            this.DolphinNotDetected.Size = new System.Drawing.Size(206, 13);
+            this.DolphinNotDetected.TabIndex = 5;
+            this.DolphinNotDetected.Text = "Dolphin not detected...";
+            this.DolphinNotDetected.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // DolphinRetry
+            // 
+            this.DolphinRetry.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.DolphinRetry.Location = new System.Drawing.Point(651, 567);
+            this.DolphinRetry.Name = "DolphinRetry";
+            this.DolphinRetry.Size = new System.Drawing.Size(206, 23);
+            this.DolphinRetry.TabIndex = 6;
+            this.DolphinRetry.Text = "Retry";
+            this.DolphinRetry.UseVisualStyleBackColor = true;
+            this.DolphinRetry.Click += new System.EventHandler(this.DolphinRetry_Click);
+            // 
+            // Connected
+            // 
+            this.Connected.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.Connected.Enabled = false;
+            this.Connected.Location = new System.Drawing.Point(651, 548);
+            this.Connected.MaximumSize = new System.Drawing.Size(206, 200);
+            this.Connected.Name = "Connected";
+            this.Connected.ReadOnly = true;
+            this.Connected.Size = new System.Drawing.Size(206, 13);
+            this.Connected.TabIndex = 7;
+            this.Connected.Text = "Connected!";
+            this.Connected.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.Connected.Visible = false;
+            // 
+            // Disconnect
+            // 
+            this.Disconnect.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.Disconnect.Location = new System.Drawing.Point(651, 567);
+            this.Disconnect.Name = "Disconnect";
+            this.Disconnect.Size = new System.Drawing.Size(206, 23);
+            this.Disconnect.TabIndex = 8;
+            this.Disconnect.Text = "Disconnect";
+            this.Disconnect.UseVisualStyleBackColor = true;
+            this.Disconnect.Visible = false;
+            this.Disconnect.Click += new System.EventHandler(this.Disconnect_Click);
+            // 
             // TAStudio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(869, 602);
+            this.Controls.Add(this.Disconnect);
+            this.Controls.Add(this.Connected);
+            this.Controls.Add(this.DolphinRetry);
+            this.Controls.Add(this.DolphinNotDetected);
             this.Controls.Add(this.recordDolphinInputs);
             this.Controls.Add(this.readOnlyWarning);
             this.Controls.Add(this.playbackBox);
             this.Controls.Add(this.inputView);
             this.Controls.Add(this.menuStrip1);
-            this.MinimumSize = new System.Drawing.Size(885, 39);
+            this.MinimumSize = new System.Drawing.Size(885, 400);
             this.Name = "TAStudio";
             this.Text = "Dolphin TAStudio";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
@@ -347,6 +410,10 @@
         private System.Windows.Forms.Button SetStateName;
         private System.Windows.Forms.TextBox readOnlyWarning;
         private System.Windows.Forms.CheckBox recordDolphinInputs;
+        private System.Windows.Forms.TextBox DolphinNotDetected;
+        private System.Windows.Forms.Button DolphinRetry;
+        private System.Windows.Forms.TextBox Connected;
+        private System.Windows.Forms.Button Disconnect;
     }
 }
 

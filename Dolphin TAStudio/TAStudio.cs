@@ -1,7 +1,11 @@
 ﻿/* TODO:
- * On table modification, clear and re-set the queue
  * In order to clear queue on table modification or savestate load, clear InputsInQueue in Dolphin code
  * Implement keyboard shortcuts
+ * Create EventHandler for when Dolphin closes
+ *      As of right now, Dolphin closing does not prevent DMI objects from being created, thus there is no way to tell if Dolphin has closed after the MMF has been created.
+ * Verify that ParseTableInputs is supposed to resend startIndex frame data
+ * Parse Savestate names as "fileName FrameCount"
+ * Save State and Load State cannot function currently, as we cannot verify that they sync based on the open input table.
 */
 
 using System;
@@ -42,12 +46,15 @@ namespace Dolphin_TAStudio
         private bool _changed = false;
         private bool dataCopiedToClipboard = false;
         private bool sendInputsToDolphin = false; // Determines whether or not to send inputs to the emulator, based on whether or not it is in read-only mode
+        private bool tableModifiedSinceLastQueue = false; // Track whether there have been modifications since the last queueing of inputs
+        private int indexModifiedSinceLastQueue = -1; // Track the LOWEST index that was modified since last queueing
+        private List<int> indicesToSave = new List<int>();
 
         // Represent columns in a list of tuples, to allow for easy modification should these column names change
         private readonly List<(string, string)> columnNames = new List<(string, string)>()
         {
             ("Save?", "Bool"),
-            ("Frame", "Byte"),
+            ("Frame", "Int"),
             ("aX", "Byte"),
             ("aY", "Byte"),
             ("A", "Bool"),
@@ -75,20 +82,9 @@ namespace Dolphin_TAStudio
         {
             InitializeComponent();
             DisableMenuButtons();
-            
-            try
-            {
-                dmi = new DolphinMemoryInterface();
-
-                dmi.MoviePlaybackStateChanged += checkReadOnly;
-                dmi.InputFrameCountChanged += OnFrameUpdate;
-
-                checkReadOnly(null, null);
-            }
-            catch (Exception e)
-            {
-                // Show error message and activate a button to retry connection - similar to how it's done in DolphinMemoryEngine
-            }
+            AttemptDolphinConnection();
+            playbackBox.Visible = false;
+            recordDolphinInputs.Visible = false;
         }
 
         #region Table format-related functions
@@ -98,6 +94,7 @@ namespace Dolphin_TAStudio
             foreach ((string, string) column in columnNames)
             {
                 if (column.Item2 == "Byte") table.Columns.Add(column.Item1, typeof(Byte));
+                else if (column.Item2 == "Int") table.Columns.Add(column.Item1, typeof(int));
                 else if (column.Item2 == "Bool") table.Columns.Add(column.Item1, typeof(bool));
             }
         }
@@ -118,11 +115,26 @@ namespace Dolphin_TAStudio
             }
         }
 
+        /// <summary>
+        /// Runs when a cell value in the table is changed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void InputView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
             // Handle the case where checkbox cell value changes are not instantly reflected
             if (inputView.IsCurrentCellDirty) inputView.CommitEdit(DataGridViewDataErrorContexts.Commit);
             Changed = true;
+
+            if (sendInputsToDolphin)
+            {
+                tableModifiedSinceLastQueue = true;
+                int currentRow = inputView.CurrentCell.RowIndex;
+                if (currentRow < indexModifiedSinceLastQueue) { indexModifiedSinceLastQueue = currentRow; }
+
+                // Walk through the table and unsave all subsequent frames, as those savestates will now desync
+                UnSaveDesyncedFrames(currentRow);
+            }
         }
 
         private void InputView_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -298,6 +310,7 @@ namespace Dolphin_TAStudio
             table.Rows.Add(TableGenerateDefaultRow());
             inputView.DataSource = table;
             ResizeInputViewColumns();
+            if (dmi != null) { recordDolphinInputs.Visible = true; }
         }
 
         private void SaveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -344,13 +357,9 @@ namespace Dolphin_TAStudio
                 Open_Data(open.FileName);
                 this.Text = "Dolphin TAStudio - " + Path.GetFileName(open.FileName);
 
-                // Parse table data into gcCont objects
-                for (int i = 0; i < table.Rows.Count; i++)
-                {
-                    dmi.AddInputInQueue(parseTableInputs(inputView.Rows[i]));
-                    if (i == 0) { dmi.AddInputInQueue(parseTableInputs(inputView.Rows[i])); } // Resend the first frame so that it processes correctly
+                if (sendInputsToDolphin) { parseTableInputs(0); }
 
-                }
+                playbackBox.Visible = true;
             }
         }
 
@@ -358,7 +367,10 @@ namespace Dolphin_TAStudio
         {
             ClearDataTable();
             if (_changed) { return; } // If the file was not saved, do not close the table
-            dmi.DeactivateInputs();
+            if (dmi != null) {
+                dmi.DeactivateInputs();
+                recordDolphinInputs.Visible = false;
+            }
             this.Text = "Dolphin TAStudio";
         }
 
@@ -383,6 +395,10 @@ namespace Dolphin_TAStudio
 
         #region Data functions
 
+        /// <summary>
+        /// Parse table data into a file.
+        /// </summary>
+        /// <param name="fileLocation"></param>
         private void Save_Data(string fileLocation)
         {
             string data = "";
@@ -423,6 +439,10 @@ namespace Dolphin_TAStudio
             Changed = false;
         }
 
+        /// <summary>
+        /// Given a file, parse data into a table.
+        /// </summary>
+        /// <param name="fileLocation"></param>
         private void Open_Data(string fileLocation)
         {
             // Read from file and assert that it is formatted properly
@@ -475,6 +495,7 @@ namespace Dolphin_TAStudio
                                 newRow[table.Columns[i]] = cellData[i];
                             }
                         }
+                        else if (columnNames[i].Item2 == "Int") { newRow[table.Columns[i]] = cellData[i]; }
                         else if (columnNames[i].Item2 == "Bool")
                         {
                             if (cellData[i] == "true")
@@ -496,7 +517,12 @@ namespace Dolphin_TAStudio
 
             ResizeInputViewColumns();
             Resync_FrameCount(0);
-            dmi.ActivateInputs();
+            if (dmi != null)
+            {
+                dmi.ActivateInputs();
+                recordDolphinInputs.Visible = true;
+            }
+            else { recordDolphinInputs.Visible = false; }
 
             // Enable close and save as menu buttons
             closeToolStripMenuItem.Enabled = true;
@@ -527,10 +553,16 @@ namespace Dolphin_TAStudio
             DisableMenuButtons();
             fileName = "";
             Changed = false;
-            dmi.DeactivateInputs();
+            if (dmi != null) { dmi.DeactivateInputs(); }
             this.Text = "Dolphin TAStudio";
+            recordDolphinInputs.Visible = false;
         }
 
+        /// <summary>
+        /// Given a DataRow row, turn row data into a comma-separated string in preparation for file output.
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns>A comma-separated string of the row's data.</returns>
         private string Parse_Data(DataRow row)
         {
             string parsedData = "";
@@ -697,7 +729,7 @@ namespace Dolphin_TAStudio
         
         private void FrameAdvance_Click(object sender, EventArgs e)
         {
-            dmi.FrameAdvance();
+            if (dmi != null) { dmi.FrameAdvance(); }
         }
 
         private void Play_Click(object sender, EventArgs e)
@@ -727,9 +759,20 @@ namespace Dolphin_TAStudio
 
             dmi.SetStateName(name);
         }
-        
-        // Turn data at frame into gcCont inputs
-        private DolphinMemoryInterface.GCController parseTableInputs(DataGridViewRow frameData)
+        /// <summary>
+        /// Turn table (staring at startIndex) into gcCont inputs and send to the queue
+        /// </summary>
+        /// <param name="startIndex"></param>
+        private void parseTableInputs(int startIndex)
+        {
+            for (int i = startIndex; i < inputView.Rows.Count; i++)
+            {
+                dmi.AddInputInQueue(parseRowInputs(inputView.Rows[i]));
+                if (i == startIndex) { dmi.AddInputInQueue(parseRowInputs(inputView.Rows[i])); } // Resend first frame (NOTE: THIS MAY NOT WORK AS INTENDED)
+            }
+        }
+        // Turn row into gcCont inputs
+        private DolphinMemoryInterface.GCController parseRowInputs(DataGridViewRow frameData)
         {
             DolphinMemoryInterface.GCController gcInput = new DolphinMemoryInterface.GCController();
             gcInput.button = 0;
@@ -760,10 +803,127 @@ namespace Dolphin_TAStudio
             return gcInput;
         }
 
+        /// <summary>
+        /// Runs every frame when Dolphin is playing
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnFrameUpdate(object sender, EventArgs e)
         {
+            if (tableModifiedSinceLastQueue && sendInputsToDolphin)
+            {
+                // If the table has been modified since we queued inputs, then we need to:
+                //      1. Clear the queue
+                //      2. use indexModifiedSinceLastQueue to find the previous saved frame state
+                //      3. Begin re-queueing the table from the specified previous frame
 
+                dmi.ClearQueue();
+                int prevFrame = FindPreviousSavedFrame(indexModifiedSinceLastQueue);
+                dmi.SetStateName(fileName + " " + prevFrame);
+                dmi.LoadState();
+
+                parseTableInputs(prevFrame); // NOTE, this may cause the first input to not be read
+                tableModifiedSinceLastQueue = false;
+            }
+
+            if (sendInputsToDolphin && indicesToSave.Count > 0)
+            {
+                int frameCount = (int)inputView.Rows[indicesToSave[0]].Cells[1].Value;
+                if (dmi.GetInputFrameCount() == Convert.ToUInt64(frameCount))
+                {
+                    // Save the frame
+                    dmi.SetStateName(fileName + " " + frameCount.ToString());
+                    dmi.SaveState();
+                    indicesToSave.RemoveAt(0);
+                }
+            }
         }
+
+        /// <summary>
+        /// Walk backwards from startIndex to the beginning of the table to try and find the most nearby saved frame
+        /// </summary>
+        /// <param name="startIndex"></param>
+        /// <returns>Index of the most recently saved frame</returns>
+        private int FindPreviousSavedFrame(int startIndex)
+        {
+            for (int i = startIndex - 1; i > 0; i--)
+            {
+                object cell = table.Rows[i][0];
+                if (cell.GetType() == typeof(bool) && (bool)cell)
+                {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Walk from startIndex to the end of the table and un-save all frames. Additionally clear the save queue past this startIndex
+        /// </summary>
+        /// <param name="startIndex"></param>
+        private void UnSaveDesyncedFrames(int startIndex)
+        {
+            for (int i = startIndex; i < inputView.Rows.Count; i++)
+            {
+                inputView.Rows[i].Cells[0].Value = false;
+                int frameCount = (int)inputView.Rows[i].Cells[1].Value;
+                if (indicesToSave.Contains(frameCount)) { indicesToSave.Remove(frameCount); }
+            }
+        }
+
+        /// <summary>
+        /// Given a specific frame, save the state at that frame
+        /// </summary>
+        /// <param name="index"></param>
+        private void SaveSelectedFrame(int index)
+        {
+            // 1. First, walk backwards and get the first previously saved state
+            // 2. Begin playback from that savestate up to the frame #index
+            // 3. If Dolphin input frame count is index frame count, then save the state as "fileName frameCount"
+        }
+
+        private void AttemptDolphinConnection()
+        {
+            try
+            {
+                dmi = new DolphinMemoryInterface();
+
+                dmi.MoviePlaybackStateChanged += checkReadOnly;
+                dmi.InputFrameCountChanged += OnFrameUpdate;
+
+                checkReadOnly(null, null);
+                DolphinNotDetected.Visible = false;
+                DolphinRetry.Visible = false;
+                Connected.Visible = true;
+                Disconnect.Visible = true;
+                sendInputsToDolphin = true;
+                if (table.Rows.Count > 0) { recordDolphinInputs.Visible = false; }
+            }
+            catch (Exception e)
+            {
+                DolphinNotDetected.Visible = true;
+                DolphinRetry.Visible = true;
+                Connected.Visible = false;
+                Disconnect.Visible = false;
+                recordDolphinInputs.Visible = false;
+            }
+        }
+
+        private void DolphinRetry_Click(object sender, EventArgs e)
+        {
+            AttemptDolphinConnection();
+        }
+
         #endregion
+
+        private void Disconnect_Click(object sender, EventArgs e)
+        {
+            dmi = null;
+            Connected.Visible = false;
+            Disconnect.Visible = false;
+            DolphinRetry.Visible = true;
+            DolphinNotDetected.Visible = true;
+            sendInputsToDolphin = false;
+        }
     }
 }
